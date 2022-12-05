@@ -20,6 +20,31 @@ router.post("/register", async (req, res) =>  {
 
 });
 
+// login user
+
+router.post("/login", async (req, res) => {
+
+    try {
+        const user = await User.findOne( { email: req.body.email } )
+
+        if (!user) res.status(401).json("No such user registered.")
+
+        const pass = CryptoJS.AES.decrypt(user.password, process.env.CRYPTO_SALT);
+        const actualPassword = pass.toString(CryptoJS.enc.Utf8);
+
+
+        if (actualPassword !== req.body.password) res.status(401).json("No such user registered.")
+        
+        const { password, ...rest } = user._doc;
+
+        res.status(200).send(rest);
+
+    }
+    catch (err) {
+        res.status(500).json(err);
+    }
+})
+
 
 
 
