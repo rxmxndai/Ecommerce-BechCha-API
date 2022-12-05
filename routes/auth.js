@@ -18,24 +18,26 @@ router.post("/register", async (req, res) =>  {
     });
 
     const {valid, validators, reason} = await isEmailValid(req.body.email)
-
-    if (!valid)  {
-        res.status(400).json({
-            message: "Invalid Email detected !",
-            reason: validators[reason].reason
-        });
-    }
+    // res.status(400).json({
+    //     message: "Invalid Email detected !",
+    //     reason: validators[reason].reason
+    // });
+    
 
     // save to database
     try {
-        const savedUser = await newUser.save();
-        res.status(201).json( savedUser );
+        if (valid)  {     
+            const savedUser = await newUser.save();
+            res.status(201).json( savedUser );
+        }
     }
     catch (err) {
         res.status(500).json(err);
     }
 
 });
+
+
 
 // login user
 
