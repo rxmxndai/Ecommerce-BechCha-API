@@ -10,30 +10,32 @@ async function isEmailValid(email) {
 }
 
 // register user
-router.post("/register", async (req, res) =>  {
-    const newUser = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: CryptoJS.AES.encrypt(req.body.password, process.env.CRYPTO_SALT).toString(),
-    });
+router.post("/register", async (req, res, next) =>  {
 
-    const {valid, validators, reason} = await isEmailValid(req.body.email)
-    // res.status(400).json({
-    //     message: "Invalid Email detected !",
-    //     reason: validators[reason].reason
-    // });
-    
-
-    // save to database
     try {
-        if (valid)  {     
-            const savedUser = await newUser.save();
-            res.status(201).json( savedUser );
+        const newUser = new User({
+            username: req.body.username,
+            email: req.body.email,
+            password: CryptoJS.AES.encrypt(req.body.password, process.env.CRYPTO_SALT).toString(),
+        });
+
+        const {valid, validators, reason} = await isEmailValid(req.body.email)
+        
+        
+        if (valid === false)  {     
+            res.status(400).json({
+                message: "Invalid Email detected !",
+                reason: validators[reason].reason
+            })
         }
+        
+        // save to database
+                const savedUser = await newUser.save();
+                res.status(201).json( savedUser );
     }
-    catch (err) {
-        res.status(500).json(err);
-    }
+        catch (err) {
+            res.status(500).json(err);
+        }
 
 });
 
