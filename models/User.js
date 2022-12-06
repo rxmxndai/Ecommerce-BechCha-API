@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-
+var CryptoJS = require("crypto-js");
 
 const userSchema = new mongoose.Schema( {
         username: {
@@ -15,6 +15,15 @@ const userSchema = new mongoose.Schema( {
             type: String, 
             required: true,
             unique: true,
+        },
+        phone: {
+            type: Number,
+            required: true,
+            unique: true,
+            validate(value) {
+                if (value.length > 999999999) 
+                throw new Error('Enter 10 digit phone number')
+            } 
         }, 
         isAdmin: {
             type: Boolean,
@@ -25,4 +34,7 @@ const userSchema = new mongoose.Schema( {
     { timestamps : true }
 );
 
-module.exports = mongoose.model('User', userSchema);
+
+const User = mongoose.model('User', userSchema);
+
+module.exports = User
