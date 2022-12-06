@@ -1,28 +1,26 @@
+const User = require("../models/User");
 const router = require("express").Router();
-const { findById } = require("../models/User");
+const CryptoJS = require("crypto-js")
 const { verifyTokenAndAuthorization }  = require("./verifyToken");
 
 router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
-        const updates = Object.keys(req.body)
-        const allowedUpdates = ["username", "email", "password", "phone"];
-
-        const isValidOperation = updates.every( (update) => allowedUpdates.includes(update))
-
-        if (!isValidOperation ) { return res.status(403).json({error: "Invalid updates credential passed"}) }
-
+        if (req.body.password) {
+            req.body.password = CryptoJS.AES.encrypt(req.body.password , process.env.CRYPTO_SALT).toString();
+        }
+        
         try {
-            const user = await findById({ _id: req.params.id })
-
-            updates.forEach( (update) => {
-                req.user[update] = user[update];
-            })
-
-            await user.save();
-
-            res.status(200).json({user})
+            const updatedUser = await User.findByIdAndUpdate( 
+                req.params.id, 
+                {
+                    $set: req.body,
+                },
+                { new: true }
+            )  
+            
+            res.status(201).json(updatedUser);
         }
         catch (err) {
-
+            res.status(500).json(err)
         }
 
 })
