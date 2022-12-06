@@ -33,13 +33,13 @@ router.post("/register", async (req, res, next) => {
   });
 
   // validate email -- no dummy allowed
-  const { valid, reason } = await isEmailValid(req.body.email);
-  if (valid === false) {
-    return res.status(400).json({
-        message: "Invalid Email detected !",
-        reason: reason,
-      });    
-  }
+  // const { valid, reason } = await isEmailValid(req.body.email);
+  // if (valid === false) {
+  //   return res.status(400).json({
+  //       message: "Invalid Email detected !",
+  //       reason: reason,
+  //     });    
+  // }
 
 
   try {
