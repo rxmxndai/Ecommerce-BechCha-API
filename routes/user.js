@@ -64,7 +64,9 @@ router.get("/", verifyTokenAndAdmin, async (req, res) =>{
     const query = req.query.new
 
     try {
-        const users = await User.find();
+        // sort ({parameter: asc or desc})
+        // limit => pagination (limit(how many))
+        const users = query? await User.find().sort({_id: -1}).limit(1) : await User.find();
 
         if (!users) throw new Error("No record found")
 
@@ -74,5 +76,40 @@ router.get("/", verifyTokenAndAdmin, async (req, res) =>{
         res.status(500).json(err.message)
     }
 } )
+
+
+// get user stats
+
+router.get("/stats", verifyTokenAndAdmin, async (req, res) =>{
+    const date = new Date();
+    const lastYear = new Date(date.setFullYear(date.getFullYear() - 1 ));
+
+    try {
+        const data = await User.aggregate([
+            {
+                $match: { 
+                    createdAt: { $gte: lastYear } 
+                } 
+            }, 
+            {
+                $project: {
+                    month: { $month: "$createdAt" }
+                }
+            },
+            {
+                $group: { 
+                    _id: "$month",
+                    total: { $sum: 1 } 
+                }
+            }
+        ])
+
+        res.status(200).json( data );
+    }
+    catch (err) {
+        res.status(500).json(err.message)
+    }
+})
+
 
 module.exports = router
