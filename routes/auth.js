@@ -6,7 +6,15 @@ const emailValidator = require("deep-email-validator");
 const jwt = require("jsonwebtoken");
 
 async function isEmailValid(email) {
-  return emailValidator.validate(email);
+  return await emailValidator.validate( {
+    email: email,
+    validateRegex: true,
+    validateMx: true,
+    validateTypo: true,
+    validateDisposable: true,
+    validateSMTP: true,
+  }
+  );
 }
 
 // register user
@@ -26,7 +34,7 @@ router.post("/register", async (req, res, next) => {
 
   // validate email -- no dummy allowed
   const { valid, reason } = await isEmailValid(req.body.email);
-  if (!valid) {
+  if (valid === false) {
     return res.status(400).json({
         message: "Invalid Email detected !",
         reason: reason,
