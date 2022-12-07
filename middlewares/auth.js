@@ -1,29 +1,44 @@
-const User = require("../models/User");
+const jwt = require("jsonwebtoken")
+const { verifyJWT } = require("./utils")
+const { findById } = require("../models/User")
 
-const router = require("express").Router();
+const verifyToken = (req, res, next ) => {
+    const token = req.header('Authorization').replace('Bearer ', '')
+    if (token) {
+        const decodedUser = verifyJWT(token)
 
+        if (!decodedUser) return res.status(400).json("Not a valid token")
+        req.user = decodedUser
+        next();
+    }
+    else {
+        return res.status(401).json("Not authenticated !");
+    }
+}
 
-const auth = async (req, res, next) => {
-  try {
-    const accessToken = req.header("Authorization").replace("Bearer ", "")
+const verifyTokenAndAuthorization = (req, res, next) => {
 
-    const decodedUser = verifyJWT(token);
-    const user = await User.findOne({_id: decodedUser._id, "tokens.token": accessToken})
+    verifyToken(req, res, () => {
+        if (req.user._id === req.params.id || req.user.isAdmin) {
+            next();
+        }
+        else {
+            return res.status(403).json("Not Allowed")
+        }
 
-
-    if (!user) throw new Error("Invalid token")
-
-    req.accessToken = accessToken
-    req.user = user
-
-    next()
-  }
-  catch (err) {
-    res.status(500).json(err.message)
-  }
+    }) 
 }
 
 
+const verifyTokenAndAdmin = (req, res, next) => {
+    verifyToken(req, res, () => {
+        if (req.user.isAdmin) {
+            next();
+        }
+        else {
+            res.status(403).json({msg: "Only admin can handle the following request"});
+        }
+    })
+}
 
-
-module.exports = auth;
+module.exports = { verifyToken, verifyTokenAndAdmin, verifyTokenAndAuthorization }
