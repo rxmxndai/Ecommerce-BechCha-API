@@ -22,14 +22,13 @@ router.post("/register", async (req, res) => {
     //     });    
     // }
 
-    const user = new User(req.body)
     try {
+        const user = new User(req.body)
         // save to database  
-        await user.save();
-        
-        const accessToken = await user.generateAuthToken()
+        // await user.save();
+        await user.generateAuthToken()
 
-      res.status(201).json( { user, accessToken } );
+      res.status(201).json( user );
 
     } catch (err) {
       return res.status(500).json(err.log);
@@ -53,12 +52,9 @@ router.post("/login", async (req, res) => {
         return res.status(404).json("Password milena");
       }
       
-
-      console.log(user._id);
-      const accessToken = await user.generateAuthToken();
-      if (!accessToken) throw new Error("No access token created.")
+      await user.generateAuthToken();
   
-      res.status(200).json({ user, accessToken });
+      res.status(200).json( user);
     } catch (err) {
       return res.status(500).json(err);
     }
@@ -93,8 +89,7 @@ router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
 
         if (!deletedUser) throw new Error("No record found")
 
-        const {...rest} = deletedUser._doc; 
-        res.status(200).json({...rest, msg: "User deleted"})
+        res.status(200).json(deletedUser)
     }
     catch (err) {
         res.status(500).json(err.message)

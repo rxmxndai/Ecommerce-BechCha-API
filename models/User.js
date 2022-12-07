@@ -29,12 +29,9 @@ const userSchema = new mongoose.Schema( {
             type: Boolean,
             default: false,
         },
-        tokens: [{
-            token: {
-                type: String,
-                required: true
-            }
-        }],
+        token: {
+            type: String,
+        }
     }, 
 
     { timestamps : true }
@@ -64,10 +61,9 @@ userSchema.methods.generateAuthToken = async function ()  {
     const accessToken = signJWT(payload)
 
     
-    user.tokens = user.tokens.concat({ token: accessToken})
-    console.log("Token generated: ", user.tokens);
+    user.token =  accessToken
+
     await user.save()
-    return accessToken;
 }
 
 
