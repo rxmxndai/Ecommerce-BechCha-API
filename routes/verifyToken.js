@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken")
 const { verifyJWT } = require("../middlewares/utils")
+const { findById } = require("../models/User")
 
 const verifyToken = (req, res, next ) => {
     const token = req.header('Authorization').replace('Bearer ', '')
@@ -8,6 +9,8 @@ const verifyToken = (req, res, next ) => {
 
         if (!decodedUser) return res.status(400).json("Not a valid token")
         req.user = decodedUser
+
+        console.log(req.user);
         next();
     }
     else {
@@ -31,7 +34,6 @@ const verifyTokenAndAuthorization = (req, res, next) => {
 
 const verifyTokenAndAdmin = (req, res, next) => {
     verifyToken(req, res, () => {
-
         if (req.user.isAdmin) {
             next();
         }

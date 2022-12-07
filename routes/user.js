@@ -85,7 +85,7 @@ router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
 router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
     
     try {
-        const deletedUser = await User.findByIdAndDelete( req.params.id )
+        const deletedUser = await User.findByIdAndDelete( req.user._id )
 
         if (!deletedUser) throw new Error("No record found")
 
@@ -113,7 +113,7 @@ router.get("/find/:id", verifyTokenAndAdmin, async (req, res) =>{
 } )
 
 // get all user
-router.get("/", verifyTokenAndAdmin, async (req, res) =>{
+router.get("/find", verifyTokenAndAdmin, async (req, res) =>{
 
     // query
     const query = req.query.new

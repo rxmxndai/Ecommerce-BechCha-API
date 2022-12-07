@@ -46,6 +46,8 @@ userSchema.methods.toJSON = function () {
     delete userObject.password
     delete userObject.tokens
 
+    console.log("toJSON invoked");
+
     return userObject
 }
 
@@ -56,7 +58,8 @@ userSchema.methods.generateAuthToken = async function ()  {
     if (!user) throw new Error("No user")
 
     const payload = {
-        _id: user._id.toString()
+        _id: user._id.toString(),
+        isAdmin: user.isAdmin,
     }
     const accessToken = signJWT(payload)
 
