@@ -1,24 +1,84 @@
-const User = require("../models/User");
 const router = require("express").Router();
-const CryptoJS = require("crypto-js")
+const User = require("../models/User");
 const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("./verifyToken");
+const { isEmailValid, decryptHashedPass, verifyJWT } = require("../middlewares/utils")
 
-router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
-        if (req.body.password) {
-            req.body.password = CryptoJS.AES.encrypt(req.body.password , process.env.CRYPTO_SALT).toString();
-        }
+
+
+
+// register user
+router.post("/register", async (req, res) => {
+    // empty body?
+    if (!req.body.phone || !req.body.username || !req.body.email || !req.body.password) {
+      return res.status(400).send("Complete credentials required!");
+    }
+  
+    // // validate email -- no dummy allowed
+    // const { valid, reason } = await isEmailValid(req.body.email);
+    // if (valid === false) {
+    //   return res.status(400).json({
+    //       message: "Invalid Email detected !",
+    //       reason: reason,
+    //     });    
+    // }
+
+    const user = new User(req.body)
+    try {
+        // save to database  
+        await user.save();
         
+        const accessToken = await user.generateAuthToken()
+
+      res.status(201).json( { user, accessToken } );
+
+    } catch (err) {
+      return res.status(500).json(err.log);
+    }
+  });
+
+
+
+
+
+  // login user
+router.post("/login", async (req, res) => {
+    try {
+      const user = await User.findOne({ email: req.body.email });
+  
+      if (!user) return res.status(404).json("No such user registered.");
+
+      const actualPassword = decryptHashedPass(user.password);
+  
+      if (actualPassword !== req.body.password) {
+        return res.status(404).json("Password milena");
+      }
+      
+
+      console.log(user._id);
+      const accessToken = await user.generateAuthToken();
+      if (!accessToken) throw new Error("No access token created.")
+  
+      res.status(200).json({ user, accessToken });
+    } catch (err) {
+      return res.status(500).json(err);
+    }
+  });
+
+
+
+  
+// update user
+router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
         try {
-            const updatedUser = await User.findByIdAndUpdate( 
+            const user = await User.findByIdAndUpdate( 
                 req.params.id, 
                 {
                     $set: req.body,
                 },
                 { new: true }
             )  
-            const {password, isAdmin,  ...rest} = updatedUser._doc;
 
-            res.status(201).json( { ...rest } );
+            res.status(201).json( user );
         }
         catch (err) {
             res.status(500).json(err)
@@ -26,7 +86,7 @@ router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
 })
 
 
-router.delete("/:id", verifyTokenAndAuthorization, async (req, res, next) => {
+router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
     
     try {
         const deletedUser = await User.findByIdAndDelete( req.params.id )

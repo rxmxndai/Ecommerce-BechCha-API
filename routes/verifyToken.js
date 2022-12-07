@@ -1,16 +1,14 @@
 const jwt = require("jsonwebtoken")
+const { verifyJWT } = require("../middlewares/utils")
 
 const verifyToken = (req, res, next ) => {
     const token = req.header('Authorization').replace('Bearer ', '')
     if (token) {
-        jwt.verify(
-            token, 
-            process.env.JWT_SECRET_KEY, 
-            (err, user) => {
-                if (err) return res.status(403).json("Invalid Token !")
-                req.user = user;
-                next()
-            })
+        const decodedUser = verifyJWT(token)
+
+        if (!decodedUser) return res.status(400).json("Not a valid token")
+        req.user = decodedUser
+        next();
     }
     else {
         return res.status(401).json("Not authenticated !");
@@ -20,7 +18,7 @@ const verifyToken = (req, res, next ) => {
 const verifyTokenAndAuthorization = (req, res, next) => {
 
     verifyToken(req, res, () => {
-        if (req.user.id === req.params.id || req.user.isAdmin) {
+        if (req.user._id === req.params.id || req.user.isAdmin) {
             next();
         }
         else {
