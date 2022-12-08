@@ -46,8 +46,4 @@ const verifyTokenAndAdmin = (req, res, next) => {
 }
 
 
-const destroyToken = (req, res, next) => {
-    
-}
-
 module.exports = { verifyToken, verifyTokenAndAdmin, verifyTokenAndAuthorization }
