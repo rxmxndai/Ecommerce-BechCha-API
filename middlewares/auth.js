@@ -3,11 +3,16 @@ const { verifyJWT } = require("./utils")
 
 const verifyToken = (req, res, next ) => {
     const token = req.header('Authorization').replace('Bearer ', '')
+    
+    if (req.cookies.accessToken) {
+        token = req.cookies.accessToken
+    }
     if (token) {
-        const decodedUser = verifyJWT(token)
+        const {payload}  = verifyJWT(token)
 
-        if (!decodedUser) return res.status(400).json("Not a valid token")
-        req.user = decodedUser
+        if (!payload) return res.status(400).json("Not a valid token")
+        
+        req.user = payload
         next();
     }
     else {
@@ -38,6 +43,11 @@ const verifyTokenAndAdmin = (req, res, next) => {
             res.status(403).json({msg: "Only admin can handle the following request"});
         }
     })
+}
+
+
+const destroyToken = (req, res, next) => {
+    
 }
 
 module.exports = { verifyToken, verifyTokenAndAdmin, verifyTokenAndAuthorization }
