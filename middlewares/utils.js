@@ -16,14 +16,19 @@ const decryptHashedPass = (password) => {
 }
 
 
-const signJWT = (payload) => {
-    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+const signJWT = (payload, expiresIn) => {
+    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn} );
     return token
 }
 
 const verifyJWT = (token) => {
-    const decodedUser = jwt.verify(token, process.env.JWT_SECRET_KEY)
-    return decodedUser;
+    try {
+        const decodedUser = jwt.verify(token, process.env.JWT_SECRET_KEY)
+        return {payload: decodedUser, expired: false};
+    }
+    catch (err) {
+        return {payload: null, expired: error.message.include("jwt expired")}
+    }
 }
 
 async function isEmailValid(email) {

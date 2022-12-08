@@ -61,12 +61,18 @@ userSchema.methods.generateAuthToken = async function ()  {
         _id: user._id.toString(),
         isAdmin: user.isAdmin,
     }
-    const accessToken = signJWT(payload)
+    const accessToken = signJWT(payload, "1h");
 
     
     user.token =  accessToken
 
     await user.save()
+    
+    res.cookie("accessToken", accessToken, {
+        maxAge: 300000,
+        httpOnly: true,
+    })
+
 }
 
 

@@ -49,10 +49,12 @@ router.post("/login", async (req, res) => {
       const actualPassword = decryptHashedPass(user.password);
   
       if (actualPassword !== req.body.password) {
-        return res.status(404).json("Password milena");
+        return res.status(404).json("No such user registered.");
       }
-      
+    
+      // create access token
       await user.generateAuthToken();
+      // set accesss token in cookie
   
       res.status(200).json( user);
     } catch (err) {
