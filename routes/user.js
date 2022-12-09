@@ -39,6 +39,8 @@ router.post("/register", async (req, res) => {
 
   // login user
 router.post("/login", async (req, res) => {
+    const cookies = req.cookies;
+
     try {
 
       const user = await User.findOne({ email: req.body.email }).exec();
@@ -46,18 +48,22 @@ router.post("/login", async (req, res) => {
       if (!user) return res.status(401).json("No such user registered."); // unauthorized
 
       const actualPassword = decryptHashedPass(user.password);
-  
+       
       if (actualPassword !== req.body.password) {
         return res.status(401).json("No such user registered.");
       }
     
       // create access token
-      const { newRefreshToken, accessToken } = await user.generateAuthToken();
-    
+      const tokens = await user.generateAuthToken();
+      const newRefreshToken = tokens.refreshToken;
+      const accessToken = tokens.accessToken;
+      
       
       let newRefreshTokenArray = cookies?.jwt ? 
-                                    user.refreshToken.filter( token => token !== cookies.jwt)
-                                    : user.refreshToken
+        user.refreshToken.filter( token => token !== cookies.jwt)
+        : user.refreshToken
+      
+      
 
         if (cookies?.jwt) {
             const refreshToken = cookies.jwt;
@@ -72,11 +78,8 @@ router.post("/login", async (req, res) => {
         }
 
         // Saving refreshToken with current user
-        foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
-        const result = await foundUser.save();
-        console.log(result);
-
-
+        user.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+        await user.save();
         // set accesss token in cookie
 
         res.cookie("jwt", newRefreshToken, {
@@ -86,10 +89,11 @@ router.post("/login", async (req, res) => {
             maxAge: 24*60*60*1000
         })
 
+        const {...rest} = user._doc;
         // send authorization roles and access token to user
-      res.status(200).json( { user, accessToken } );
+      res.status(200).json( { ...rest, accessToken } );
 
-      
+
     } catch (err) {
       return res.status(500).json(err);
     }

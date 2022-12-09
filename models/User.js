@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const { hashPass, signJWT } = require("../middlewares/utils");
+const { hashPass } = require("../middlewares/utils");
+const jwt = require("jsonwebtoken")
 
 const userSchema = new mongoose.Schema( {
         username: {
@@ -42,7 +43,7 @@ userSchema.methods.toJSON = function () {
     const userObject = user.toObject()
 
     delete userObject.password
-    delete userObject.tokens
+    delete userObject.refreshToken
 
     console.log("toJSON invoked");
 
@@ -50,11 +51,11 @@ userSchema.methods.toJSON = function () {
 }
 
 
-userSchema.methods.generateAuthToken = async function ( {rTexpiry, aTexpiry} )  {
+userSchema.methods.generateAuthToken = async function ( rTexpiry, aTexpiry )  {
     const user = this
-
+    
     if (!user) throw new Error("No user")
-
+    
     const payload = {
         _id: user._id.toString(),
         isAdmin: user.isAdmin,
@@ -63,11 +64,17 @@ userSchema.methods.generateAuthToken = async function ( {rTexpiry, aTexpiry} )  
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, aTexpiry);
     const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, rTexpiry);
     
+    
     user.refreshToken = refreshToken
-
+    
     await user.save()
     
-    return {refreshToken, accessToken}
+    const tokens = {
+        refreshToken,
+        accessToken
+    }
+
+    return tokens
 }
 
 
