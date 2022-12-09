@@ -61,9 +61,8 @@ userSchema.methods.generateAuthToken = async function ( rTexpiry, aTexpiry )  {
         isAdmin: user.isAdmin,
     }
     
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, aTexpiry);
-    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, rTexpiry);
-    
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: aTexpiry});
+    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: aTexpiry});
     
     user.refreshToken = refreshToken
     

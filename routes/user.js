@@ -54,7 +54,7 @@ router.post("/login", async (req, res) => {
       }
     
       // create access token
-      const tokens = await user.generateAuthToken();
+      const tokens = await user.generateAuthToken("1d", "60s");
       const newRefreshToken = tokens.refreshToken;
       const accessToken = tokens.accessToken;
       
@@ -89,7 +89,8 @@ router.post("/login", async (req, res) => {
             maxAge: 24*60*60*1000
         })
 
-        const {...rest} = user._doc;
+        console.log("Login Successful");
+        const {refreshToken, password, ...rest} = user._doc;
         // send authorization roles and access token to user
       res.status(200).json( { ...rest, accessToken } );
 

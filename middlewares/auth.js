@@ -2,13 +2,11 @@ const jwt = require("jsonwebtoken")
 const { verifyJWT } = require("./utils")
 
 const verifyToken = (req, res, next ) => {
+
     const token = req.header('Authorization').replace('Bearer ', '')
     
-    if (req.cookies.accessToken) {
-        token = req.cookies.accessToken
-    }
     if (token) {
-        const {payload}  = verifyJWT(token)
+        const payload  = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
         if (!payload) return res.status(400).json("Not a valid token")
         
