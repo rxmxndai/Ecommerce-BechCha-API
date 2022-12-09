@@ -1,7 +1,8 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
-const { isEmailValid, decryptHashedPass, verifyJWT } = require("../middlewares/utils")
+const { isEmailValid, decryptHashedPass, verifyJWT } = require("../middlewares/utils");
+const { findOneAndUpdate } = require("../models/User");
 
 
 // register user
@@ -23,8 +24,7 @@ router.post("/register", async (req, res) => {
     try {
         const user = new User(req.body)
         // save to database  
-        // await user.save();
-        await user.generateAuthToken()
+        await user.save();
 
       res.status(201).json( user );
 
@@ -40,21 +40,56 @@ router.post("/register", async (req, res) => {
   // login user
 router.post("/login", async (req, res) => {
     try {
-      const user = await User.findOne({ email: req.body.email });
+
+      const user = await User.findOne({ email: req.body.email }).exec();
   
-      if (!user) return res.status(404).json("No such user registered.");
+      if (!user) return res.status(401).json("No such user registered."); // unauthorized
 
       const actualPassword = decryptHashedPass(user.password);
   
       if (actualPassword !== req.body.password) {
-        return res.status(404).json("No such user registered.");
+        return res.status(401).json("No such user registered.");
       }
     
       // create access token
-      await user.generateAuthToken();
-      // set accesss token in cookie
-  
-      res.status(200).json( user);
+      const { newRefreshToken, accessToken } = await user.generateAuthToken();
+    
+      
+      let newRefreshTokenArray = cookies?.jwt ? 
+                                    user.refreshToken.filter( token => token !== cookies.jwt)
+                                    : user.refreshToken
+
+        if (cookies?.jwt) {
+            const refreshToken = cookies.jwt;
+            const foundToken = await User.findOne({refreshToken}).exec()
+
+            // if detected reuse of refresh token
+            if (!foundToken) {
+                console.log("Attempted refresh token reuse at login");
+                newRefreshTokenArray = [];
+            }
+            res.clearCookie("jwt", {httpOnly: true, sameSite: "None", secure: true})
+        }
+
+        // Saving refreshToken with current user
+        foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+        const result = await foundUser.save();
+        console.log(result);
+
+
+        // set accesss token in cookie
+
+        res.cookie("jwt", newRefreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+            maxAge: 24*60*60*1000
+        })
+
+        // send authorization roles and access token to user
+      res.status(200).json( { user, accessToken } );
+
+      
     } catch (err) {
       return res.status(500).json(err);
     }

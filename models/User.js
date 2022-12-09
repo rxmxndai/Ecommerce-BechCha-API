@@ -29,9 +29,7 @@ const userSchema = new mongoose.Schema( {
             type: Boolean,
             default: false,
         },
-        token: {
-            type: String,
-        }
+        refreshToken: [String]
     }, 
 
     { timestamps : true }
@@ -52,7 +50,7 @@ userSchema.methods.toJSON = function () {
 }
 
 
-userSchema.methods.generateAuthToken = async function ()  {
+userSchema.methods.generateAuthToken = async function ( {rTexpiry, aTexpiry} )  {
     const user = this
 
     if (!user) throw new Error("No user")
@@ -61,18 +59,15 @@ userSchema.methods.generateAuthToken = async function ()  {
         _id: user._id.toString(),
         isAdmin: user.isAdmin,
     }
-    const accessToken = signJWT(payload, "1h");
-
     
-    user.token =  accessToken
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, aTexpiry);
+    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, rTexpiry);
+    
+    user.refreshToken = refreshToken
 
     await user.save()
     
-    res.cookie("accessToken", accessToken, {
-        maxAge: 300000,
-        httpOnly: true,
-    })
-
+    return {refreshToken, accessToken}
 }
 
 

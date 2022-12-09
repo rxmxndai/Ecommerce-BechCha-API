@@ -16,20 +16,20 @@ const decryptHashedPass = (password) => {
 }
 
 
-const signJWT = (payload, expiresIn) => {
-    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn} );
-    return token
-}
+// const signJWT = (payload, expiresIn) => {
+//     const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn} );
+//     return token
+// }
 
-const verifyJWT = (token) => {
-    try {
-        const decodedUser = jwt.verify(token, process.env.JWT_SECRET_KEY)
-        return {payload: decodedUser, expired: false};
-    }
-    catch (err) {
-        return {payload: null, expired: error.message.include("jwt expired")}
-    }
-}
+// const verifyJWT = (token) => {
+//     try {
+//         const decodedUser = jwt.verify(token, process.env.JWT_SECRET_KEY)
+//         return {payload: decodedUser, expired: false};
+//     }
+//     catch (err) {
+//         return {payload: null, expired: error.message.include("jwt expired")}
+//     }
+// }
 
 async function isEmailValid(email) {
     return await emailValidator.validate( {
@@ -49,7 +49,5 @@ async function isEmailValid(email) {
 module.exports = {
     hashPass,
     decryptHashedPass,
-    isEmailValid,
-    signJWT,
-    verifyJWT
+    isEmailValid
 }
