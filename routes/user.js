@@ -102,6 +102,30 @@ router.post("/login", async (req, res) => {
 
 
 
+  router.delete("/logout", verifyTokenAndAuthorization, async (req, res) => {
+         // On client, also delete the accessToken
+
+    const cookies = req.cookies;
+    // console.log(cookies.jwt);
+    if (!cookies?.jwt) return res.sendStatus(204); //No content
+
+    const refreshToken = cookies.jwt;
+
+    // Is refreshToken in db?
+    const foundUser = await User.findOne({ refreshToken }).exec();
+    if (!foundUser) {
+        res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
+        return res.sendStatus(204);
+    }
+
+    // Delete refreshToken in db
+    foundUser.refreshToken = foundUser.refreshToken.filter(rt => rt !== refreshToken);;
+    const result = await foundUser.save();
+
+    res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
+    res.status(200).json(foundUser);
+  })
+
   
 // update user
 router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {

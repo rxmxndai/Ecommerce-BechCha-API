@@ -39,8 +39,24 @@ const handleRefreshToken = async (req, res) => {
 
         // refresh token still valid
         const payload = {
-            email
+            _id: user._id.toString(),
+            isAdmin: user.isAdmin,
         }
-        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn} );
-    })
+        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "60s"} );
+        const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "1d"} );
+        
+        // Saving refreshToken with current user
+        foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+        const result = await foundUser.save();
+
+        // Creates Secure Cookie with refresh token
+        res.cookie('jwt', newRefreshToken, { 
+            httpOnly: true, 
+            secure: true, 
+            sameSite: 'None', 
+            maxAge: 24 * 60 * 60 * 1000 
+        });
+
+        res.status(200).json({ accessToken })
+        })
 }
