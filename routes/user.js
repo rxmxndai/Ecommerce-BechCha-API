@@ -4,17 +4,6 @@ const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middle
 const { isEmailValid, decryptHashedPass, verifyJWT } = require("../middlewares/utils")
 
 
-// logout
-router.delete("/me",  async (req, res) > {
-    
-    res.cookie("accessToken", "", {
-        maxAge: 0,
-        htpOnly: true,
-    })
-
-    res.send({success: true})
-})
-
 // register user
 router.post("/register", async (req, res) => {
     // empty body?
