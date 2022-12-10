@@ -1,5 +1,5 @@
 
-const Cart = require("../models/Cart");
+const Order = require("../models/Order");
 const router = require("express").Router();
 const {  verifyTokenAndAdmin, verifyTokenAndAuthorization }  = require("./verifyToken");
 
@@ -9,11 +9,11 @@ const {  verifyTokenAndAdmin, verifyTokenAndAuthorization }  = require("./verify
 // create cart (for all authenticated users)
 router.post("/", verifyTokenAndAuthorization, async (req, res, next) => {
     
-    const newCart = new Cart(req.body)
+    const order = new Order(req.body)
 
     try {
-        const savedCart = await newCart.save();
-        res.status(201).json(savedCart);
+        const savedOrder = await order.save();
+        res.status(201).json(savedOrder);
     }
     catch (err) {
         res.status(500).json(err.message)
@@ -21,11 +21,11 @@ router.post("/", verifyTokenAndAuthorization, async (req, res, next) => {
 })
 
 
-// update cart
-router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
+// update order
+router.put( "/:id", verifyTokenAndAdmin, async (req, res) => {
         
         try {
-            const updatedCart = await Cart.findByIdAndUpdate( 
+            const updatedOrder = await Order.findByIdAndUpdate( 
                 req.params.id, 
                 {
                     $set: req.body,
@@ -33,7 +33,7 @@ router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
                 { new: true }
             )  
 
-            res.status(201).json( updatedCart );
+            res.status(201).json( updatedOrder );
         }
         catch (err) {
             res.status(500).json(err)
@@ -41,17 +41,17 @@ router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
 })
 
 
-router.delete("/:id", verifyTokenAndAuthorization, async (req, res, next) => {
+router.delete("/:id", verifyTokenAndAdmin, async (req, res, next) => {
     
     try {
-        const deletedCart = await Cart.findByIdAndDelete( req.params.id )
+        const deletedOrder = await Order.findByIdAndDelete( req.params.id )
 
-        if (!deletedCart) throw new Error("No record found")
+        if (!deletedOrder) throw new Error("No record found")
 
 
-        const {...products} = deletedCart._doc;
+        const {...products} = deletedOrder._doc;
 
-        res.status(200).json({ ...products , msg: "Cart Emptied"})
+        res.status(200).json({ ...products , msg: "Order deleted"})
     }
     catch (err) {
         res.status(500).json(err.message)
@@ -60,14 +60,14 @@ router.delete("/:id", verifyTokenAndAuthorization, async (req, res, next) => {
 
 
 
-// get particular cart
+// get particular order from an individual customer
 router.get("/find/:userid", verifyTokenAndAuthorization, async (req, res) =>{
     try {
-        const cart = await Cart.findOne( {userId: req.params.userid} )
+        const orders = await Order.find( {userId: req.params.userid} )
 
-        if (!cart) throw new Error("No record found")
+        if (!orders) throw new Error("No record found")
 
-        res.status(200).json(cart)
+        res.status(200).json(orders)
     }
     catch (err) {
         res.status(500).json(err.message)
@@ -81,8 +81,8 @@ router.get("/find/:userid", verifyTokenAndAuthorization, async (req, res) =>{
 
 router.get("/", verifyTokenAndAdmin, async (req, res) => {
     try {
-        const carts = await Cart.find()
-        res.status(200).json(carts)
+        const orders = await Order.find()
+        res.status(200).json(orders)
     }
     catch (err) {
         res.status(500).json(err);
