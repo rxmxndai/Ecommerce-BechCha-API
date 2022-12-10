@@ -73,7 +73,7 @@ router.get("/find/:id", async (req, res) =>{
     }
 } )
 
-// get all user
+// get all products
 router.get("/", async (req, res) =>{
 
     // query
