@@ -56,19 +56,19 @@ router.post("/register", async (req, res) => {
         const { expiresAt } = userOTPrecords[0];
         const hashedOTP = userOTPrecords[0].otp;
 
-        console.log("Hashed pass: ", hashedOTP, "\n");
-
-
         if (expiresAt < Date.now()) {
             await OTPmodel.deleteMany({userId: userId});
             return new Error("OTP's verification time has expired. Please request for new one.")
         }   
 
-        var actualOTP = decryptHashedPass(otp)
-        // decryptedOTP = "U2FsdGVkX1+Jqm9mBJJx93eFbQQF4jvvJWrd05eEY+M=";
-        console.log("Decrypted pass: ", actualOTP, "\n");
+        var validOTP = await decryptHashedPass({
+            password: otp,
+            hashedPassword: hashedOTP
+        })
 
-        if (actualOTP !== hashedOTP) return res.status(403).json({msg: "OTP do not match"});
+        console.log(validOTP);
+
+        if (!validOTP) return res.status(403).json({msg: "OTP do not match"});
 
         // for success
         await User.updateOne({ id: userId }, {isVerified: true})
@@ -110,6 +110,7 @@ router.post("/login", async (req, res) => {
     
       // create access token
       const tokens = await user.generateAuthToken("1d", "60s");
+
       const newRefreshToken = tokens.refreshToken;
       const accessToken = tokens.accessToken;
       
