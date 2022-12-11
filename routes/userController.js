@@ -42,23 +42,47 @@ router.post("/register", async (req, res) => {
   router.post("/verifyOTP", async (req, res) => {
     try {
         let { userId, otp } = req.body;
+        
+        
         if (!userId || !otp) {
             return res.status(500).json({msg: "Empty OTP entered"})
         }
-
+        
+        // otp = String(otp);
         const userOTPrecords = await OTPmodel.find({userId})
 
         if (userOTPrecords <=0 ) return res.status(403).json("No account registered")
 
         const { expiresAt } = userOTPrecords[0];
         const hashedOTP = userOTPrecords[0].otp;
-        
 
+        console.log("Hashed pass: ", hashedOTP, "\n");
+
+
+        if (expiresAt < Date.now()) {
+            await OTPmodel.deleteMany({userId: userId});
+            return new Error("OTP's verification time has expired. Please request for new one.")
+        }   
+
+        const decryptedOTP = decryptHashedPass(otp).toString();
+        // decryptedOTP = "U2FsdGVkX1+Jqm9mBJJx93eFbQQF4jvvJWrd05eEY+M=";
+        console.log("Decrypted pass: ", decryptedOTP, "\n");
+        if (decryptedOTP != hashedOTP) return res.status(403).json({msg: "OTP do not match"});
+
+        // for success
+        await User.updateOne({ id: userId }, {isVerified: true})
+
+        res.status(200).json({
+            status: "VERIFIED",
+            msg: "User email has been verified"
+        })
 
     }
 
     catch (err) {
-        res.status(500).json({msg: "OTP  mismatch"})
+        res.status(500).json({
+            cause: err.message,
+            msg: "OTP  mismatch"});
     }
   })
 

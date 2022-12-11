@@ -30,8 +30,8 @@ const decryptHashedPass = (password) => {
 const sendOTPverificationEmail = async ({id, email}, res) => {
 
     try {
-        const OTP = `${Math.floor(1000 + Math.random() * 9000)}`;
-
+        let OTP = `${Math.floor(1000 + Math.random() * 9000)}`;
+        
         // mail options
         const mailOptions = {
             from: process.env.MAIL_EMAIL,
@@ -48,6 +48,7 @@ const sendOTPverificationEmail = async ({id, email}, res) => {
         
         
         // hash the otp
+        console.log(OTP);
         const hashedOTP = hashPass(OTP)
         const newOTPverification =  new OTPmodel({
             userId: id,
@@ -60,8 +61,7 @@ const sendOTPverificationEmail = async ({id, email}, res) => {
         await newOTPverification.save();
         // send verification mail
         const result = await transporter.sendMail(mailOptions);
-        
-        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(result));
+
         
         if (!result) return res.status(500).json({Message: "Could not send email"})
         
