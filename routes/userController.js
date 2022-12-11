@@ -48,7 +48,7 @@ router.post("/register", async (req, res) => {
             return res.status(500).json({msg: "Empty OTP entered"})
         }
         
-        // otp = String(otp);
+        otp = otp.toString();
         const userOTPrecords = await OTPmodel.find({userId})
 
         if (userOTPrecords <=0 ) return res.status(403).json("No account registered")
@@ -64,10 +64,11 @@ router.post("/register", async (req, res) => {
             return new Error("OTP's verification time has expired. Please request for new one.")
         }   
 
-        const decryptedOTP = decryptHashedPass(otp).toString();
+        var actualOTP = decryptHashedPass(otp)
         // decryptedOTP = "U2FsdGVkX1+Jqm9mBJJx93eFbQQF4jvvJWrd05eEY+M=";
-        console.log("Decrypted pass: ", decryptedOTP, "\n");
-        if (decryptedOTP != hashedOTP) return res.status(403).json({msg: "OTP do not match"});
+        console.log("Decrypted pass: ", actualOTP, "\n");
+
+        if (actualOTP !== hashedOTP) return res.status(403).json({msg: "OTP do not match"});
 
         // for success
         await User.updateOne({ id: userId }, {isVerified: true})
@@ -98,9 +99,12 @@ router.post("/login", async (req, res) => {
   
       if (!user) return res.status(401).json("No such user registered."); // unauthorized
 
-      const actualPassword = decryptHashedPass(user.password);
+      const validPass = await decryptHashedPass({
+                            password: req.body.password, 
+                            hashedPassword: user.password
+                        });
        
-      if (actualPassword !== req.body.password) {
+      if (!validPass) {
         return res.status(401).json("No such user registered.");
       }
     
@@ -108,7 +112,6 @@ router.post("/login", async (req, res) => {
       const tokens = await user.generateAuthToken("1d", "60s");
       const newRefreshToken = tokens.refreshToken;
       const accessToken = tokens.accessToken;
-      
       
       let newRefreshTokenArray = cookies?.jwt ? 
         user.refreshToken.filter( token => token !== cookies.jwt)

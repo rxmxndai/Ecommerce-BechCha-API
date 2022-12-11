@@ -1,7 +1,6 @@
-const CryptoJS = require("crypto-js")
-const emailValidator = require("deep-email-validator");
 const nodemailer = require("nodemailer")
 const OTPmodel = require("../models/OTPverification")
+var bcrypt = require('bcryptjs');
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -14,16 +13,18 @@ const transporter = nodemailer.createTransport({
 
 
 
-const hashPass = (password) => {
-    const hashedPassword = CryptoJS.AES.encrypt( password, process.env.CRYPTO_SALT).toString();
+const hashPass = async (password) => {
+    const hashedPassword = await bcrypt.hash(password, 10)
     return hashedPassword;
 }
 
 
-const decryptHashedPass = (password) => {
-    const pass = CryptoJS.AES.decrypt(password, process.env.CRYPTO_SALT);
-    const decryptedPass = pass.toString(CryptoJS.enc.Utf8);
-    return decryptedPass;
+const decryptHashedPass = async ({password, hashedPassword}) => {
+    if (!password || !hashedPassword) {
+        return false;
+    }
+    const passed = await bcrypt.compare(password, hashedPassword)
+    return passed;
 }
 
 
@@ -31,7 +32,7 @@ const sendOTPverificationEmail = async ({id, email}, res) => {
 
     try {
         let OTP = `${Math.floor(1000 + Math.random() * 9000)}`;
-        
+        OTP = OTP.toString();
         // mail options
         const mailOptions = {
             from: process.env.MAIL_EMAIL,
@@ -49,7 +50,7 @@ const sendOTPverificationEmail = async ({id, email}, res) => {
         
         // hash the otp
         console.log(OTP);
-        const hashedOTP = hashPass(OTP)
+        const hashedOTP = await hashPass(OTP)
         const newOTPverification =  new OTPmodel({
             userId: id,
             otp: hashedOTP,
@@ -57,8 +58,10 @@ const sendOTPverificationEmail = async ({id, email}, res) => {
             expiresAt: Date.now() + 600000 // 10 min in milliseconds
         })
         
+
         // otp record save in db
         await newOTPverification.save();
+        console.log("check");
         // send verification mail
         const result = await transporter.sendMail(mailOptions);
 

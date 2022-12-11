@@ -64,7 +64,7 @@ userSchema.methods.generateAuthToken = async function ( rTexpiry, aTexpiry )  {
     }
     
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: aTexpiry});
-    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: aTexpiry});
+    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: rTexpiry});
     
     user.refreshToken = refreshToken
     
@@ -83,7 +83,7 @@ userSchema.methods.generateAuthToken = async function ( rTexpiry, aTexpiry )  {
 userSchema.pre("save", async function (next) {
     const user = this
     if (user.isModified("password")) {
-        user.password = hashPass(user.password)
+        user.password = await hashPass(user.password)
     }
     next()
 } ) 
