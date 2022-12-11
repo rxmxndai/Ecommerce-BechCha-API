@@ -4,7 +4,8 @@ const nodemailer = require("nodemailer")
 const OTPmodel = require("../models/OTPverification")
 
 const transporter = nodemailer.createTransport({
-    service: 'smtp-mail.gmail',
+    host: "smtp.gmail.com",
+    service: "gmail",
     auth: {
       user: process.env.MAIL_EMAIL,
       pass: process.env.MAIL_PASSWORD,
@@ -27,10 +28,9 @@ const decryptHashedPass = (password) => {
 
 
 const sendOTPverificationEmail = async ({id, email}, res) => {
-    
 
     try {
-        const OTP = `${Math.floor(1000 + MATH.RANDOM() * 9000)}`;
+        const OTP = `${Math.floor(1000 + Math.random() * 9000)}`;
 
         // mail options
         const mailOptions = {
@@ -44,24 +44,54 @@ const sendOTPverificationEmail = async ({id, email}, res) => {
                 <p> This code expires in 10 minutes </p>
              </div>
             `,
-        };
-
-
+        };  
+        
+        
         // hash the otp
-        const hashedOTP = await hashPass(OTP)
-        const newOTPverification = await new OTPmodel({
-
+        const hashedOTP = hashPass(OTP)
+        const newOTPverification =  new OTPmodel({
+            userId: id,
+            otp: hashedOTP,
+            createdAt: Date.now(), 
+            expiresAt: Date.now() + 600000 // 10 min in milliseconds
         })
+        
+        // otp record save in db
+        await newOTPverification.save();
+        // send verification mail
+        const result = await transporter.sendMail(mailOptions);
+        
+        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(result));
+        
+        if (!result) return res.status(500).json({Message: "Could not send email"})
+        
+       
+        return res.status(200).json({
+            status: "PENDING",
+            MESSAGE: `Verification OTP sent to ${email}`,
+            data: {
+                userId: id,
+                email
+            }
+        })
+
     }
 
     catch (err) {
-
+        return res.status(500).json({
+            MESSAGE: err.message,
+        })
     }
+}
+
+
+const verifyOTP = async (req, res) => {
+    
 }
 
 async function isEmailValid(email) {
     return await emailValidator.validate( {
-      email: email,
+      email: email, 
       validateRegex: true,
       validateMx: true,
       validateTypo: true,
@@ -77,5 +107,6 @@ async function isEmailValid(email) {
 module.exports = {
     hashPass,
     decryptHashedPass,
-    isEmailValid
+    isEmailValid,
+    sendOTPverificationEmail
 }

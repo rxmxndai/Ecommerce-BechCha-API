@@ -1,8 +1,7 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
-const { isEmailValid, decryptHashedPass, verifyJWT } = require("../middlewares/utils");
-const { findOneAndUpdate } = require("../models/User");
+const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
 
 
 
@@ -14,21 +13,19 @@ router.post("/register", async (req, res) => {
     if (!req.body.phone || !req.body.username || !req.body.email || !req.body.password) {
       return res.status(400).send("Complete credentials required!");
     }
-  
-    // // validate email -- no dummy allowed
-    // const { valid, reason } = await isEmailValid(req.body.email);
-    // if (valid === false) {
-    //   return res.status(400).json({
-    //       message: "Invalid Email detected !",
-    //       reason: reason,
-    //     });    
-    // }
 
     const duplicateUser = User.find({email: req.body.email})
-    if (duplicateUser) return res.status(409).json({msg: "User with same email exists already."})
+
+    if (duplicateUser.length) 
+        return res.status(409).json({msg: `User with same email exists already. ${duplicateUser}`})
+    
+    const user = new User(req.body)
+
+    await sendOTPverificationEmail({id: user._id, email: user.email}, res)
+    
 
     try {
-        const user = new User(req.body)
+        
         // save to database  
         await user.save();
 
@@ -40,6 +37,22 @@ router.post("/register", async (req, res) => {
   });
 
 
+  // verify OTP
+  router.post("/verifyOTP", async (req, res) => {
+    try {
+        let { userId, otp } = req.body;
+        if (!userId || !otp) {
+            return res.status(500).json({msg: "Empty OTP entered"})
+        }
+
+        const userOTPrecords = await OTPve
+
+    }
+
+    catch (err) {
+        res.status(500).json({msg: "OTP  mismatch"})
+    }
+  })
 
 
 

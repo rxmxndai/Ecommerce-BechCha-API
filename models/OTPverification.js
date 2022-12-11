@@ -9,9 +9,9 @@ const OTPverification = new mongoose.Schema({
             type: String,
             required: true,
         },
-    },
-
-    {timestamps : true}
+        createdAt: Date,
+        expiresAt: Date,
+    }
 )
 
 const OTPmodel = mongoose.model("OTPmodel", OTPverification);

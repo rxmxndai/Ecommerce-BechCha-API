@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema( {
             type: String, 
             required: true,
             unique: true,
+            match: /[a-zA-Z0-9-_.]/
         },
         password: {
             type: String, 
@@ -21,6 +22,7 @@ const userSchema = new mongoose.Schema( {
             type: Number,
             required: true,
             unique: true,
+            match: /^[1-9]\d{2}\s\d{3}\s\d{4}/,
             validate(value) {
                 if (!value > 999999999) 
                 throw new Error('Enter 10 digit phone number')
