@@ -4,7 +4,7 @@ const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middle
 const { isEmailValid, decryptHashedPass, verifyJWT } = require("../middlewares/utils");
 const { findOneAndUpdate } = require("../models/User");
 
-const OTPmodel = require("../models/OTPverification")
+
 
 
 
