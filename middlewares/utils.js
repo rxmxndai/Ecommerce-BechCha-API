@@ -86,7 +86,7 @@ const sendOTPverificationEmail = async ({id, email}, res) => {
 
 
 const verifyOTP = async (req, res) => {
-    
+    // const user = req.
 }
 
 async function isEmailValid(email) {

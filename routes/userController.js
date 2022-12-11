@@ -2,6 +2,7 @@ const router = require("express").Router();
 const User = require("../models/User");
 const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
+const OTPmodel = require("../models/OTPverification");
 
 
 
@@ -45,7 +46,14 @@ router.post("/register", async (req, res) => {
             return res.status(500).json({msg: "Empty OTP entered"})
         }
 
-        const userOTPrecords = await OTPve
+        const userOTPrecords = await OTPmodel.find({userId})
+
+        if (userOTPrecords <=0 ) return res.status(403).json("No account registered")
+
+        const { expiresAt } = userOTPrecords[0];
+        const hashedOTP = userOTPrecords[0].otp;
+        
+
 
     }
 
