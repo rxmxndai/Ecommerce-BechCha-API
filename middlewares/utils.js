@@ -16,20 +16,15 @@ const decryptHashedPass = (password) => {
 }
 
 
-// const signJWT = (payload, expiresIn) => {
-//     const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn} );
-//     return token
-// }
+const sendOTPverificationEmail = async () => {
+    try {
+        const OTP = `${Math.floor(1000 + MATH.RANDOM() * 9000)}`;
+        
+    }
+    catch (err) {
 
-// const verifyJWT = (token) => {
-//     try {
-//         const decodedUser = jwt.verify(token, process.env.JWT_SECRET_KEY)
-//         return {payload: decodedUser, expired: false};
-//     }
-//     catch (err) {
-//         return {payload: null, expired: error.message.include("jwt expired")}
-//     }
-// }
+    }
+}
 
 async function isEmailValid(email) {
     return await emailValidator.validate( {

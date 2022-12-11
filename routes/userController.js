@@ -4,6 +4,9 @@ const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middle
 const { isEmailValid, decryptHashedPass, verifyJWT } = require("../middlewares/utils");
 const { findOneAndUpdate } = require("../models/User");
 
+const OTPmodel = require("../models/OTPverification")
+
+
 
 // register user
 router.post("/register", async (req, res) => {
@@ -20,6 +23,9 @@ router.post("/register", async (req, res) => {
     //       reason: reason,
     //     });    
     // }
+
+    const duplicateUser = User.find({email: req.body.email})
+    if (duplicateUser) return res.status(409).json({msg: "User with same email exists already."})
 
     try {
         const user = new User(req.body)

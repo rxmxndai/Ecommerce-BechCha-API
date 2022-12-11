@@ -90,4 +90,10 @@ router.get("/", verifyTokenAndAdmin, async (req, res) => {
 })
 
 
+// get montyhly income
+
+router.get("/income", verifyTokenAndAdmin, async (req, res) => {
+    
+})
+
 module.exports = router
