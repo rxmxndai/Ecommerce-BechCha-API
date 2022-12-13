@@ -20,7 +20,6 @@ const userSchema = new mongoose.Schema( {
         },
         phone: {
             type: Number,
-            required: true,
             unique: true,
             match: /^[1-9]\d{2}\s\d{3}\s\d{4}/,
             validate(value) {

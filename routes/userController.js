@@ -66,8 +66,6 @@ router.post("/register", async (req, res) => {
             hashedPassword: hashedOTP
         })
 
-        console.log(validOTP);
-
         if (!validOTP) return res.status(403).json({msg: "OTP do not match"});
 
         // for success
@@ -93,6 +91,8 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
     const cookies = req.cookies;
 
+    console.log(cookies);
+
     try {
 
       const user = await User.findOne({ email: req.body.email }).exec();
@@ -109,7 +109,7 @@ router.post("/login", async (req, res) => {
       }
     
       // create access token
-      const tokens = await user.generateAuthToken("1d", "60s");
+      const tokens = await user.generateAuthToken("1d", "10s");
 
       const newRefreshToken = tokens.refreshToken;
       const accessToken = tokens.accessToken;
@@ -138,9 +138,9 @@ router.post("/login", async (req, res) => {
         // set accesss token in cookie
 
         res.cookie("jwt", newRefreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "None",
+            // httpOnly: true,
+            // secure: true,
+            // sameSite: "None",
             maxAge: 24*60*60*1000
         })
 
