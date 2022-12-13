@@ -49,8 +49,6 @@ router.post("/register", async (req, res) => {
   // verify OTP
   router.post("/verifyOTP", async (req, res) => {
 
-    const validation = await JoiValidate(req.body);
-
     try {
         let { userId, otp } = req.body;
         
@@ -62,7 +60,7 @@ router.post("/register", async (req, res) => {
         otp = otp.toString();
         const userOTPrecords = await OTPmodel.find({userId})
         // otp records in database !? 
-        if (userOTPrecords <=0 ) return res.status(403).json("No account registered")
+        if (userOTPrecords <=0 ) return res.status(403).json("OTP INVALID")
 
         const { expiresAt } = userOTPrecords[0];
         const hashedOTP = userOTPrecords[0].otp;
