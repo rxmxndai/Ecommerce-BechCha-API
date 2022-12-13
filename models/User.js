@@ -39,12 +39,6 @@ const userSchema = new mongoose.Schema( {
 );
 
 
-userSchema.methods.JoiValidate = function (body) {
-    var schema = {
-
-    }
-}
-
 userSchema.methods.toJSON = function () {
     const user = this
 

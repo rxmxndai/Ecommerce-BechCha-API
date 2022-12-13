@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const User = require("../models/User");
-const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
+const { JoiValidateUserSchema, verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
 const OTPmodel = require("../models/OTPverification");
 
@@ -11,7 +11,7 @@ const OTPmodel = require("../models/OTPverification");
 // register user
 router.post("/register", async (req, res) => {
     // empty body?
-    if (!req.body.phone || !req.body.username || !req.body.email || !req.body.password) {
+    if ( !req.body.username || !req.body.email || !req.body.password) {
       return res.status(400).send("Complete credentials required!");
     }
 
@@ -21,6 +21,9 @@ router.post("/register", async (req, res) => {
         return res.status(409).json({msg: `User with same email exists already. ${duplicateUser}`})
     
     const user = new User(req.body)
+    const {err, model} = JoiValidateUserSchema(user);
+
+    if (err) return res.status(900).json({msg: "Not valid credentials"})
 
     await sendOTPverificationEmail({id: user._id, email: user.email}, res)
     
@@ -40,6 +43,9 @@ router.post("/register", async (req, res) => {
 
   // verify OTP
   router.post("/verifyOTP", async (req, res) => {
+
+    const validation = await JoiValidate(req.body);
+
     try {
         let { userId, otp } = req.body;
         
@@ -50,17 +56,20 @@ router.post("/register", async (req, res) => {
         
         otp = otp.toString();
         const userOTPrecords = await OTPmodel.find({userId})
-
+        // otp records in database !? 
         if (userOTPrecords <=0 ) return res.status(403).json("No account registered")
 
         const { expiresAt } = userOTPrecords[0];
         const hashedOTP = userOTPrecords[0].otp;
 
+
+        // otp expired?
         if (expiresAt < Date.now()) {
             await OTPmodel.deleteMany({userId: userId});
             return new Error("OTP's verification time has expired. Please request for new one.")
         }   
 
+        // true or false
         var validOTP = await decryptHashedPass({
             password: otp,
             hashedPassword: hashedOTP
