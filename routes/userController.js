@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const User = require("../models/User");
-const { JoiValidateUserSchema, verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
+const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
 const OTPmodel = require("../models/OTPverification");
+const {JoiValidateUserSchema} = require("../middlewares/JoiValidator")
 
 
 
@@ -23,7 +24,11 @@ router.post("/register", async (req, res) => {
     const user = new User(req.body)
     const {err, model} = JoiValidateUserSchema(user);
 
-    if (err) return res.status(900).json({msg: "Not valid credentials"})
+    if (err) {
+        return res.status(900).json({
+        Error: err.details,
+        msg: "Not valid credentials"})
+    }
 
     await sendOTPverificationEmail({id: user._id, email: user.email}, res)
     
