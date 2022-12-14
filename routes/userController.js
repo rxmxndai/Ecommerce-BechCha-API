@@ -100,8 +100,6 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
     const cookies = req.cookies;
 
-    console.log(cookies);
-
     try {
 
       const user = await User.findOne({ email: req.body.email }).exec();

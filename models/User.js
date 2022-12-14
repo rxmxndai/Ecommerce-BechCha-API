@@ -19,8 +19,7 @@ const userSchema = new mongoose.Schema( {
         },
         phone: {
             type: Number,
-            unique: false,
-            default: 0000000000
+            unique: false
         }, 
         isAdmin: {
             type: Boolean,
