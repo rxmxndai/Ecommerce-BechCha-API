@@ -5,9 +5,13 @@ require('./database/mongoose')
 const userRoute = require('./routes/userController')
 const productRoute = require("./routes/productController")
 var cookieParser = require('cookie-parser')
+var cors = require('cors')
+
 
 const app = express();
 
+
+app.use(cors())
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/users", userRoute);

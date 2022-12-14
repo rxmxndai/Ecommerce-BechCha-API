@@ -16,13 +16,13 @@ router.post("/register", async (req, res) => {
       return res.status(400).send("Complete credentials required!");
     }
 
-    const duplicateUser = User.find({email: req.body.email})
+    const duplicateUser = User.find({email: req.body.email} || {username: req.body.username})
 
     if (duplicateUser.length) 
         return res.status(409).json({msg: `User with same email exists already. ${duplicateUser}`})
     
     const user = new User(req.body)
-    const {err, model} = JoiValidateUserSchema(user);
+    const {err, value} = await JoiValidateUserSchema(user);
 
     if (err) {
         return res.status(900).json({
@@ -30,18 +30,15 @@ router.post("/register", async (req, res) => {
         msg: "Not valid credentials"})
     }
 
-    await sendOTPverificationEmail({id: user._id, email: user.email}, res)
-    
+    // await sendOTPverificationEmail({id: user._id, email: user.email}, res)
 
-    try {
-        
+    try {    
         // save to database  
         await user.save();
-
-      res.status(201).json( user );
-
+        res.status(201).json( user );
     } catch (err) {
-      return res.status(500).json(err.log);
+        console.log(err.message)
+        return res.status(500).json(err);
     }
   });
 

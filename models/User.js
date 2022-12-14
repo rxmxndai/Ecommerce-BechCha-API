@@ -1,14 +1,12 @@
 const mongoose = require("mongoose");
 const { hashPass } = require("../middlewares/utils");
-const jwt = require("jsonwebtoken")
-const Joi = require("joi")
+const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema( {
         username: {
             type: String, 
             required: true,
-            unique: true,
-            match: /[a-zA-Z0-9-_.]/
+            unique: true
         },
         password: {
             type: String, 
@@ -21,16 +19,16 @@ const userSchema = new mongoose.Schema( {
         },
         phone: {
             type: Number,
-            unique: true,
-            match: /^[1-9]\d{2}\s\d{3}\s\d{4}/,
-            validate(value) {
-                if (!value > 999999999) 
-                throw new Error('Enter 10 digit phone number')
-            } 
+            unique: false,
+            default: 0000000000
         }, 
         isAdmin: {
             type: Boolean,
             default: false,
+        },
+        isVerified: {
+            type: Boolean,
+            default: false
         },
         refreshToken: [String]
     }, 
