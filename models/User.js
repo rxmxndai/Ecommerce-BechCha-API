@@ -17,10 +17,10 @@ const userSchema = new mongoose.Schema( {
             required: true,
             unique: true,
         },
-        phone: {
-            type: Number,
-            unique: false
-        }, 
+        // phone: {
+        //     type: String,
+        //     unique: true
+        // }, 
         isAdmin: {
             type: Boolean,
             default: false,
@@ -43,8 +43,6 @@ userSchema.methods.toJSON = function () {
 
     delete userObject.password
     delete userObject.refreshToken
-
-    console.log("toJSON invoked");
 
     return userObject
 }
