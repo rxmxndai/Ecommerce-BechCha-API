@@ -6,7 +6,5 @@ const Category = new mongoose.Schema({
         required,
         unique
     },
-    subCategory: {
-
-    }
+    subCategory: [String]
 })
