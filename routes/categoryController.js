@@ -27,8 +27,18 @@ router.post("/add", verifyTokenAndAdmin, (req, res) => {
         })
     });
 
+})
 
 
+
+router.get("/", async (req, res) => {
+    const categories = Category.find({}).exec()
+
+    if (!categories) return res.status(404).json({msg: "No products found"})
+
+    return res.status(200).json({
+        categories
+    })
 })
 
 
