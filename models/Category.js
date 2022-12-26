@@ -1,10 +1,18 @@
 const mongoose = require("mongoose")
 
-const Category = new mongoose.Schema({
+const categorySchema = new mongoose.Schema({
     name: {
-        tye: String,
+        type: String,
         required,
         unique
     },
-    subCategory: [String]
+    slug: {
+        type: String,
+        required,
+        unique
+    },
+    parentId: {String}
 })
+
+
+module.exports = mongoose.model('Category', categorySchema);
