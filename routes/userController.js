@@ -125,7 +125,6 @@ router.post("/login", async (req, res) => {
         user.refreshToken.filter( token => token !== cookies.jwt)
         : user.refreshToken
       
-      
 
         if (cookies?.jwt) {
             const refreshToken = cookies.jwt;
@@ -145,9 +144,9 @@ router.post("/login", async (req, res) => {
         // set accesss token in cookie
 
         res.cookie("jwt", newRefreshToken, {
-            // httpOnly: true,
-            // secure: true,
-            // sameSite: "None",
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
             maxAge: 24*60*60*1000
         })
 

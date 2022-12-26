@@ -5,7 +5,6 @@ const { verifyTokenAndAdmin }  = require("../middlewares/auth");
 
 
 
-
 router.post("/", verifyTokenAndAdmin, async (req, res, next) => {
     
     const newProduct = new Product(req.body)
