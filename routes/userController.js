@@ -3,7 +3,7 @@ const User = require("../models/User");
 const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
 const OTPmodel = require("../models/OTPverification");
-const {JoiValidateUserSchema} = require("../middlewares/JoiValidator")
+const {signUpSchema, JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
 
 
 
@@ -12,30 +12,34 @@ const {JoiValidateUserSchema} = require("../middlewares/JoiValidator")
 // register user
 router.post("/register", async (req, res) => {
     // empty body?
-    if ( !req.body.username || !req.body.email || !req.body.password) {
-      return res.status(400).send("Complete credentials required!");
-    }
-
     const duplicateUser = User.find({email: req.body.email} || {username: req.body.username})
 
     if (duplicateUser.length) 
         return res.status(409).json({msg: `User with same email exists already. ${duplicateUser}`})
     
-    const user = new User(req.body)
-    const {err, value} = await JoiValidateUserSchema(user);
+    const user = new User(req.body);
 
-    if (err) {
+    // const result = signUpSchema.validate(user)
+    const result = JOIuserSchemaValidate(user);
+
+    console.log(result);
+    
+    const {error, value} = result;
+    const valid = error == null;
+
+    if (!valid)  {
         return res.status(900).json({
-        Error: err.details,
-        msg: "Not valid credentials"})
+            Error: error.details,
+            msg: "Not valid credentials"})
     }
+
 
     // await sendOTPverificationEmail({id: user._id, email: user.email}, res)
 
     try {    
         // save to database  
-        await user.save();
-        res.status(201).json( user );
+        // await user.save();
+        return res.status(201).json( user );
     } catch (err) {
         console.log(err.message)
         return res.status(500).json(err);
