@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken")
+
 const handleRefreshToken = require("./refreshTokenController")
 
 const verifyToken = async (req, res, next ) => {

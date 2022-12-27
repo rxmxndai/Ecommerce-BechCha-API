@@ -26,6 +26,5 @@ const signUpSchema = Joi.object({
 const JOIuserSchemaValidate = validator(signUpSchema);
 
 module.exports = {
-    signUpSchema,
     JOIuserSchemaValidate
 }

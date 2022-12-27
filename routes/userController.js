@@ -3,7 +3,7 @@ const User = require("../models/User");
 const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
 const OTPmodel = require("../models/OTPverification");
-const {signUpSchema, JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
+const {JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
 
 
 
@@ -16,14 +16,9 @@ router.post("/register", async (req, res) => {
 
     if (duplicateUser.length) 
         return res.status(409).json({msg: `User with same email exists already. ${duplicateUser}`})
-    
-    const user = new User(req.body);
 
-    // const result = signUpSchema.validate(user)
-    const result = JOIuserSchemaValidate(user);
 
-    console.log(result);
-    
+    const result = JOIuserSchemaValidate(req.body);
     const {error, value} = result;
     const valid = error == null;
 
@@ -33,12 +28,13 @@ router.post("/register", async (req, res) => {
             msg: "Not valid credentials"})
     }
 
+    const user = new User(value);
 
     // await sendOTPverificationEmail({id: user._id, email: user.email}, res)
 
     try {    
         // save to database  
-        // await user.save();
+        await user.save();
         return res.status(201).json( user );
     } catch (err) {
         console.log(err.message)
