@@ -22,7 +22,7 @@ router.post("/add", verifyTokenAndAdmin, (req, res) => {
         })
 
         return res.status(201).json({
-            category,
+            ...category._doc,
             msg: "Category added successfully"
         })
     });
@@ -32,24 +32,39 @@ router.post("/add", verifyTokenAndAdmin, (req, res) => {
 
 
 router.get("/", async (req, res) => {
-    const categories = await Category.find({}).exec()
 
-    if (!categories) return res.status(400).json({msg: "No products found"})
+    try {
 
-    return res.status(200).json({
-        categories
-    })
+        const categories = await Category.find({}).exec()
+        
+        if (!categories) return res.status(400).json({msg: "No products found"})
+        
+        return res.status(200).json({
+            categories
+        })
+    }
+    catch (err) {
+        res.status(500).json(err.message)
+    }
 })
 
 
 router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
     const categoryId = req.params.id;
 
-    const deletedCat = await CategoryfindByIdAndDelete( categoryId )
+    if (!categoryId) return res.status(204).json("No category selected")
+    console.log(categoryId);
+    try {
 
-    if (!deletedCat) throw new Error("No record found")
+        const deletedCat = await Category.findByIdAndDelete( categoryId )
 
-    return res.status(204).json(deletedCat);
+        if (!deletedCat) throw new Error("No record found")
+
+        return res.status(200).json({...deletedCat._doc});
+    }
+    catch (err) {
+        res.status(500).json(err.message)
+    }
 })
 
 
