@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { hashPass } = require("../middlewares/utils");
 const jwt = require("jsonwebtoken");
+const { ref } = require("joi");
 
 const userSchema = new mongoose.Schema( {
         username: {
@@ -61,7 +62,7 @@ userSchema.methods.generateAuthToken = async function ( rTexpiry, aTexpiry )  {
     const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: rTexpiry});
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: aTexpiry});
     
-    user.refreshToken = refreshToken
+    user.refreshToken = [...user.refreshToken, refreshToken]
     
     await user.save()
     

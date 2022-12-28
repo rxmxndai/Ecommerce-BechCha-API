@@ -5,9 +5,11 @@ const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/
 const OTPmodel = require("../models/OTPverification");
 const {JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
 
+const handleRefreshToken = require("../middlewares/refreshTokenController")
 
 
 
+router.post("/auth/refresh", handleRefreshToken);
 
 // register user
 router.post("/register", async (req, res) => {
@@ -141,14 +143,17 @@ router.post("/login", async (req, res) => {
         // Saving refreshToken with current user
         user.refreshToken = [...newRefreshTokenArray, newRefreshToken];
         await user.save();
-        // set accesss token in cookie
 
-        res.cookie("jwt", newRefreshToken, {
-            httpOnly: true,
-            secure: true,
+
+        // set refresh token in cookie
+        const options = {
             sameSite: "None",
-            maxAge: 24*60*60*1000
-        })
+            expires: new Date(
+            Date.now() + 5 * 24 * 60 * 60 * 1000
+            ),
+            httpOnly: true,
+        };
+        res.cookie('jwt', newRefreshToken, options);
 
         console.log("Login Successful");
         const {refreshToken, password, ...rest} = user._doc;

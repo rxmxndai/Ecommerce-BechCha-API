@@ -1,10 +1,8 @@
 const jwt = require("jsonwebtoken")
 
-const handleRefreshToken = require("./refreshTokenController")
-
 const verifyToken = async (req, res, next ) => {
-    
-    const token = req.header('Authorization').replace('Bearer ', '')
+
+    const token = req.headers['authorization'].split(" ")[1];
     
     if (token) {
         const payload  = jwt.verify(token, process.env.JWT_SECRET_KEY);
