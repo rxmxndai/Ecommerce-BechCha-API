@@ -24,7 +24,6 @@ const handleRefreshToken = async (req, res) => {
             console.log(result);
         })
 
-
         return res.status(403).json()
     } 
 

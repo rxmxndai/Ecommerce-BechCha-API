@@ -5,12 +5,16 @@ const verifyToken = async (req, res, next ) => {
     const token = req.headers['authorization'].split(" ")[1];
     
     if (token) {
-        const payload  = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
-        if (!payload) return res.status(400).json("Not a valid token")
+        jwt.verify(token, process.env.JWT_SECRET_KEY, (err, payload) => {
+            if (err) return res.status(400).json({
+                Error: err.message,
+                msg: "Not a valid token"})
         
-        req.user = payload
-        next();
+            req.user = payload
+            next();
+        });
+
+       
     }
     else {
         return res.status(401).json("Not authenticated !");
