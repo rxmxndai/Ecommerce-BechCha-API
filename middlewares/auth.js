@@ -1,10 +1,14 @@
 const jwt = require("jsonwebtoken")
 
 const verifyToken = async (req, res, next ) => {
+  
+  
+    const authHeaders =req.headers['authorization']
+  
+    if (authHeaders) {
+        
+        const token = authHeaders.split(" ")[1];
 
-    const token = req.headers['authorization'].split(" ")[1];
-    
-    if (token) {
         jwt.verify(token, process.env.JWT_SECRET_KEY, (err, payload) => {
             if (err) return res.status(400).json({
                 Error: err.message,

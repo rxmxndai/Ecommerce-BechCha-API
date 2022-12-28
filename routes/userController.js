@@ -219,7 +219,7 @@ router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
 
         if (!deletedUser) throw new Error("No record found")
 
-        res.status(200).json(deletedUser)
+        res.status(202).json(deletedUser)
     }
     catch (err) {
         res.status(500).json(err.message)

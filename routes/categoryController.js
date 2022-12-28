@@ -42,5 +42,16 @@ router.get("/", async (req, res) => {
 })
 
 
+router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
+    const categoryId = req.params.id;
+
+    const deletedCat = await CategoryfindByIdAndDelete( categoryId )
+
+    if (!deletedCat) throw new Error("No record found")
+
+    return res.status(204).json(deletedCat);
+})
+
+
 module.exports = router
 
