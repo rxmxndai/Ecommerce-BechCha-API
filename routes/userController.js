@@ -149,12 +149,13 @@ router.post("/login", async (req, res) => {
         const options = {
             sameSite: "None",
             expires: new Date(
-            Date.now() + 5 * 24 * 60 * 60 * 1000
+                Date.now() + 5 * 24 * 60 * 60 * 1000
             ),
             httpOnly: true,
+            secure: true
         };
-        res.cookie('jwt', newRefreshToken, options);
 
+        res.cookie('jwt', newRefreshToken, options);
         console.log("Login Successful");
         const {refreshToken, password, ...rest} = user._doc;
         // send authorization roles and access token to user
