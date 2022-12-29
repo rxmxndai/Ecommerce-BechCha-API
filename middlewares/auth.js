@@ -6,7 +6,6 @@ const verifyToken = async (req, res, next ) => {
     const authHeaders =req.headers['authorization']
   
     if (authHeaders) {
-        
         const token = authHeaders.split(" ")[1];
 
         jwt.verify(token, process.env.JWT_SECRET_KEY, (err, payload) => {
@@ -28,6 +27,7 @@ const verifyToken = async (req, res, next ) => {
 const verifyTokenAndAuthorization = (req, res, next) => {
 
     verifyToken(req, res, () => {
+        console.log(req.params.id);
         if (req.user._id === req.params.id || req.user.isAdmin) {
             next();
         }
