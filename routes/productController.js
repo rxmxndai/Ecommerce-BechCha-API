@@ -58,7 +58,7 @@ router.delete("/:id", verifyTokenAndAdmin, async (req, res, next) => {
 
 
 
-// get particular user
+// get particular product
 router.get("/find/:id", async (req, res) =>{
     try {
         const product = await Product.findById( req.params.id )
@@ -78,7 +78,6 @@ router.get("/", async (req, res) =>{
     // query
     const queryNew = req.query.new
     const queryCategory = req.query.category
-    const querySubCategory = req.query.subcategory
 
     try {
         // sort ({parameter: asc or desc})
@@ -87,18 +86,14 @@ router.get("/", async (req, res) =>{
         let products;
 
         if (queryNew) {
-            products= await Product.find().sort({createdAt: -1}).limit()
+            products= await Product.find()
+                            // .sort({createdAt: -1}).limit()
         }
         else if (queryCategory) {
             products= await Product.find( {
                 category: queryCategory
             })
             .sort({createdAt: -1}).limit()
-        }
-        else if (querySubCategory) {
-            products = await Product.find({subCategory: { 
-                $in: [querySubCategory]
-            } })
         }
         else {
             products = await Product.find();
@@ -107,7 +102,7 @@ router.get("/", async (req, res) =>{
 
         if (!products) throw new Error("No record found")
 
-        res.status(200).json(products)
+        res.status(200).json(...products)
     }
     catch (err) {
         res.status(500).json(err.message)

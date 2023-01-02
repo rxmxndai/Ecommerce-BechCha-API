@@ -1,9 +1,9 @@
 const router = require("express").Router();
 const User = require("../models/User");
-const { verifyTokenAndAuthorization, verifyTokenAndAdmin }  = require("../middlewares/auth");
+const { verifyTokenAndAuthorization, verifyTokenAndAdmin } = require("../middlewares/auth");
 const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
 const OTPmodel = require("../models/OTPverification");
-const {JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
+const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
 
 const handleRefreshToken = require("../middlewares/refreshTokenController")
 
@@ -14,52 +14,53 @@ router.post("/auth/refresh", handleRefreshToken);
 // register user
 router.post("/register", async (req, res) => {
     // empty body?
-    const duplicateUser = User.find({email: req.body.email} || {username: req.body.username})
+    const duplicateUser = User.find({ email: req.body.email } || { username: req.body.username })
 
-    if (duplicateUser.length) 
-        return res.status(409).json({msg: `User with same email exists already. ${duplicateUser}`})
+    if (duplicateUser.length)
+        return res.status(409).json({ msg: `User with same email exists already. ${duplicateUser}` })
 
 
     const result = JOIuserSchemaValidate(req.body);
-    const {error, value} = result;
+    const { error, value } = result;
     const valid = error == null;
 
-    if (!valid)  {
+    if (!valid) {
         return res.status(900).json({
             Error: error.details,
-            msg: "Not valid credentials"})
+            msg: "Not valid credentials"
+        })
     }
 
     const user = new User(value);
 
     // await sendOTPverificationEmail({id: user._id, email: user.email}, res)
 
-    try {    
+    try {
         // save to database  
         await user.save();
-        return res.status(201).json( user );
+        return res.status(201).json(user);
     } catch (err) {
         console.log(err.message)
         return res.status(500).json(err);
     }
-  });
+});
 
 
-  // verify OTP
-  router.post("/verifyOTP", async (req, res) => {
+// verify OTP
+router.post("/verifyOTP", async (req, res) => {
 
     try {
         let { userId, otp } = req.body;
-        
-        
+
+
         if (!userId || !otp) {
-            return res.status(500).json({msg: "Empty OTP entered"})
+            return res.status(500).json({ msg: "Empty OTP entered" })
         }
-        
+
         otp = otp.toString();
-        const userOTPrecords = await OTPmodel.find({userId})
+        const userOTPrecords = await OTPmodel.find({ userId })
         // otp records in database !? 
-        if (userOTPrecords <=0 ) return res.status(403).json("OTP INVALID")
+        if (userOTPrecords <= 0) return res.status(403).json("OTP INVALID")
 
         const { expiresAt } = userOTPrecords[0];
         const hashedOTP = userOTPrecords[0].otp;
@@ -67,9 +68,9 @@ router.post("/register", async (req, res) => {
 
         // otp expired?
         if (expiresAt < Date.now()) {
-            await OTPmodel.deleteMany({userId: userId});
+            await OTPmodel.deleteMany({ userId: userId });
             return new Error("OTP's verification time has expired. Please request for new one.")
-        }   
+        }
 
         // true or false
         var validOTP = await decryptHashedPass({
@@ -77,10 +78,10 @@ router.post("/register", async (req, res) => {
             hashedPassword: hashedOTP
         })
 
-        if (!validOTP) return res.status(403).json({msg: "OTP do not match"});
+        if (!validOTP) return res.status(403).json({ msg: "OTP do not match" });
 
         // for success
-        await User.updateOne({ id: userId }, {isVerified: true})
+        await User.updateOne({ id: userId }, { isVerified: true })
 
         res.status(200).json({
             status: "VERIFIED",
@@ -92,85 +93,86 @@ router.post("/register", async (req, res) => {
     catch (err) {
         res.status(500).json({
             cause: err.message,
-            msg: "OTP  mismatch"});
+            msg: "OTP  mismatch"
+        });
     }
-  })
+})
 
 
 
-  // login user
+// login user
 router.post("/login", async (req, res) => {
     const cookies = req.cookies;
 
-    try {
+    const user = await User.findOne({ email: req.body.email }).exec();
 
-      const user = await User.findOne({ email: req.body.email }).exec();
-  
-      if (!user) return res.status(401).json("No such user registered."); // unauthorized
+    if (!user) return res.status(401).json("No such user registered."); // unauthorized
 
-      const validPass = await decryptHashedPass({
-                            password: req.body.password, 
-                            hashedPassword: user.password
-                        });
-       
-      if (!validPass) {
+    const validPass = await decryptHashedPass({
+        password: req.body.password,
+        hashedPassword: user.password
+    });
+
+    if (!validPass) {
         return res.status(401).json("No such user registered.");
-      }
-    
-      // create access token
-      const tokens = await user.generateAuthToken("1d", "10s");
+    }
 
-      const newRefreshToken = tokens.refreshToken;
-      const accessToken = tokens.accessToken;
-      
-      let newRefreshTokenArray = cookies?.jwt ? 
-        user.refreshToken.filter( token => token !== cookies.jwt)
+    // create access token
+    const tokens = await user.generateAuthToken("7d", "60s");
+
+    const newRefreshToken = tokens.refreshToken;
+    const accessToken = tokens.accessToken;
+
+    let newRefreshTokenArray = cookies?.jwt ?
+        user.refreshToken.filter(token => token !== cookies.jwt)
         : user.refreshToken
-      
 
-        if (cookies?.jwt) {
-            const refreshToken = cookies.jwt;
-            const foundToken = await User.findOne({refreshToken}).exec()
 
-            // if detected reuse of refresh token
-            if (!foundToken) {
-                console.log("Attempted refresh token reuse at login");
-                newRefreshTokenArray = [];
-            }
-            res.clearCookie("jwt", {httpOnly: true, sameSite: "None", secure: true})
+    if (cookies?.jwt) {
+        const refreshToken = cookies.jwt;
+        const foundToken = await User.findOne({ refreshToken }).exec()
+
+        // if detected reuse of refresh token
+        if (!foundToken) {
+            console.log("Attempted refresh token reuse at login");
+            newRefreshTokenArray = [];
         }
+        res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
+    }
 
-        // Saving refreshToken with current user
-        user.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+    // Saving refreshToken with current user
+    user.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+
+
+
+    // set refresh token in cookie
+    const options = {
+        sameSite: "None",
+        expires: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+        ),
+        httpOnly: true
+    };
+
+    try {
         await user.save();
 
-
-        // set refresh token in cookie
-        const options = {
-            sameSite: "None",
-            expires: new Date(
-                Date.now() + 5 * 24 * 60 * 60 * 1000
-            ),
-            httpOnly: true,
-            secure: true
-        };
-
         res.cookie('jwt', newRefreshToken, options);
-        console.log("Login Successful");
-        const {refreshToken, password, ...rest} = user._doc;
+        console.log("Login Successful\n");
+        const { refreshToken, password, ...rest } = user._doc;
         // send authorization roles and access token to user
-      res.status(200).json( { ...rest, accessToken } );
+        res.status(200).json({ ...rest, accessToken });
 
 
     } catch (err) {
-      return res.status(500).json(err);
+        return res.status(500).json(err);
     }
-  });
+});
 
 
 
-  router.delete("/logout/:id", verifyTokenAndAuthorization, async (req, res) => {
-         // On client, also delete the accessToken
+router.delete("/logout/:id", verifyTokenAndAuthorization, async (req, res) => {
+    // On client, also delete the accessToken
 
     const cookies = req.cookies;
     // console.log(cookies.jwt);
@@ -185,43 +187,43 @@ router.post("/login", async (req, res) => {
         return res.sendStatus(204);
     }
 
-   try {
+    try {
         // Delete refreshToken in db
         foundUser.refreshToken = foundUser.refreshToken.filter(rt => rt !== refreshToken);;
         const result = await foundUser.save();
 
         res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
         res.status(200).json(result);
-   }
-   catch (err) {
-        return res.status(500).json({err: err.message, msg: "Already logged out!"})
-   }
-  })
+    }
+    catch (err) {
+        return res.status(500).json({ err: err.message, msg: "Already logged out!" })
+    }
+})
 
-  
+
 // update user
-router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
-        try {
-            const user = await User.findByIdAndUpdate( 
-                req.params.id, 
-                {
-                    $set: req.body,
-                },
-                { new: true }
-            )  
+router.put("/:id", verifyTokenAndAuthorization, async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                $set: req.body,
+            },
+            { new: true }
+        )
 
-            res.status(201).json( user );
-        }
-        catch (err) {
-            res.status(500).json(err)
-        }
+        res.status(201).json(user);
+    }
+    catch (err) {
+        res.status(500).json(err)
+    }
 })
 
 
 router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
-    
+
     try {
-        const deletedUser = await User.findByIdAndDelete( req.user._id )
+        const deletedUser = await User.findByIdAndDelete(req.user._id)
 
         if (!deletedUser) throw new Error("No record found")
 
@@ -235,9 +237,9 @@ router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
 
 
 // get particular user
-router.get("/find/:id", verifyTokenAndAdmin, async (req, res) =>{
+router.get("/find/:id", verifyTokenAndAdmin, async (req, res) => {
     try {
-        const user = await User.findById( req.params.id )
+        const user = await User.findById(req.params.id)
 
         if (!user) throw new Error("No record found")
 
@@ -246,10 +248,10 @@ router.get("/find/:id", verifyTokenAndAdmin, async (req, res) =>{
     catch (err) {
         res.status(500).json(err.message)
     }
-} )
+})
 
 // get all user
-router.get("/find", verifyTokenAndAdmin, async (req, res) =>{
+router.get("/find", verifyTokenAndAdmin, async (req, res) => {
 
     // query
     const query = req.query.new
@@ -257,7 +259,7 @@ router.get("/find", verifyTokenAndAdmin, async (req, res) =>{
     try {
         // sort ({parameter: asc or desc})
         // limit => pagination (limit(how many))
-        const users = query? await User.find().sort({_id: -1}).limit(1) : await User.find();
+        const users = query ? await User.find().sort({ _id: -1 }).limit(1) : await User.find();
 
         if (!users) throw new Error("No record found")
 
@@ -266,36 +268,36 @@ router.get("/find", verifyTokenAndAdmin, async (req, res) =>{
     catch (err) {
         res.status(500).json(err.message)
     }
-} )
+})
 
 
 // get user stats
 
-router.get("/stats", verifyTokenAndAdmin, async (req, res) =>{
+router.get("/stats", verifyTokenAndAdmin, async (req, res) => {
     const date = new Date();
-    const lastYear = new Date(date.setFullYear(date.getFullYear() - 1 ));
+    const lastYear = new Date(date.setFullYear(date.getFullYear() - 1));
 
     try {
         const data = await User.aggregate([
             {
-                $match: { 
-                    createdAt: { $gte: lastYear } 
-                } 
-            }, 
+                $match: {
+                    createdAt: { $gte: lastYear }
+                }
+            },
             {
                 $project: {
                     month: { $month: "$createdAt" }
                 }
             },
             {
-                $group: { 
+                $group: {
                     _id: "$month",
-                    total: { $sum: 1 } 
+                    total: { $sum: 1 }
                 }
             }
         ])
 
-        res.status(200).json( data );
+        res.status(200).json(data);
     }
     catch (err) {
         res.status(500).json(err.message)
