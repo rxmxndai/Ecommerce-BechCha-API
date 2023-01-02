@@ -18,10 +18,6 @@ const userSchema = new mongoose.Schema( {
             required: true,
             unique: true,
         },
-        // phone: {
-        //     type: String,
-        //     unique: true
-        // }, 
         isAdmin: {
             type: Boolean,
             default: false,
@@ -29,6 +25,9 @@ const userSchema = new mongoose.Schema( {
         isVerified: {
             type: Boolean,
             default: false
+        },
+        profile: {
+            type: Buffer
         },
         refreshToken: [String]
     }, 

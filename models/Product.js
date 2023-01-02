@@ -10,16 +10,13 @@ const productSchema = new mongoose.Schema( {
             required: true,
         },
         img: {
-            type: String, 
+            type: buffer, 
             required: true,
         }, 
         category: {
-            type: String, 
+            type: mongoose.Schema.Types.ObjectId, 
             required: true,
-        }, 
-        subCategory: {
-            type: Array, 
-            required: true,
+            ref: "Category"
         }, 
         specification: {
             type: Object, 
