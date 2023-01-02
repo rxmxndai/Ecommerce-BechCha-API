@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema( {
             required: true,
         },
         img: {
-            type: buffer, 
+            type: Buffer, 
             required: true,
         }, 
         category: {

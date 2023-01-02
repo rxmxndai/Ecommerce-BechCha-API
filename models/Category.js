@@ -15,17 +15,20 @@ const categorySchema = new mongoose.Schema({
         type: String
     },
     img: {
-        type: buffer
+        type: Buffer
     } 
 } , 
     { timestamps: true }
 )
 
-userSchema.virtual('User', {
+
+
+categorySchema.virtual('User', {
     ref: "User",
     localField: "_id",
     foreignField: "category"
 })
+
 
 
 module.exports = mongoose.model('Category', categorySchema);
