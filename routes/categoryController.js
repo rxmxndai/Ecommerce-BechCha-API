@@ -5,7 +5,7 @@ const { verifyTokenAndAdmin } = require("../middlewares/auth")
 
 
 
-const createCategories = ({categories, parentId = null}) => {
+const createCategories = (categories, parentId = null) => {
     const CategoriesList = [];
     let category = null;
 
@@ -68,7 +68,7 @@ router.get("/", async (req, res) => {
         
         if (!categories) return res.status(400).json({msg: "No products found"})
         
-        const CategoryList = createCategories({categories});
+        const CategoryList = createCategories(categories);
         return res.status(200).json({
             CategoryList
         })
@@ -77,6 +77,8 @@ router.get("/", async (req, res) => {
         res.status(500).json(err.message)
     }
 })
+
+
 
 
 router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
