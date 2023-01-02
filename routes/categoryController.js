@@ -7,12 +7,10 @@ const { verifyTokenAndAdmin } = require("../middlewares/auth")
 
 const createCategories = (categories, parentId = null) => {
     const CategoriesList = [];
-    let category = null;
+    let category;
 
     if (parentId == null) {
-        category = categories.filter( (cat) => {
-            cat.parentId == undefined
-        } )
+        category = categories.filter( (cat) => cat.parentId == undefined )
     }
     else {
         category = categories.filter( (cat) => {
