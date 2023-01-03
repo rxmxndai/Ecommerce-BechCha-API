@@ -18,15 +18,14 @@ const categorySchema = new mongoose.Schema({
         type: Buffer
     },
     children: [categorySchema]
-
 } , 
     { timestamps: true }
 )
 
 
 
-categorySchema.virtual('User', {
-    ref: "User",
+categorySchema.virtual('Product', {
+    ref: "Product",
     localField: "_id",
     foreignField: "category"
 })
