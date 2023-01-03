@@ -16,7 +16,10 @@ const categorySchema = new mongoose.Schema({
     },
     img: {
         type: Buffer
-    } 
+    },
+    children: {
+        type: "Category"
+    }
 } , 
     { timestamps: true }
 )
