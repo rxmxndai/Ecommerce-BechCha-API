@@ -23,8 +23,24 @@ const signUpSchema = Joi.object({
     isAdmin: Joi.boolean()
 })
 
+
+const productSchema = Joi.object({
+    name: Joi.string()
+    .alphanum()
+    .min(4)
+    .max(30)
+    .required(),
+    description: Joi.string().max(300).required,
+    img: Joi.binary().required(),
+    category: Joi.string().hex().required(),
+    
+
+})
+
 const JOIuserSchemaValidate = validator(signUpSchema);
+const JOIproductSchemaValidate = validator(productSchema);
 
 module.exports = {
-    JOIuserSchemaValidate
+    JOIuserSchemaValidate,
+    JOIproductSchemaValidate
 }
