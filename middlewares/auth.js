@@ -1,4 +1,12 @@
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const handleRefreshToken = require("./refreshTokenController");
+
+
+
+const JWTverify = ({token}) => {
+    const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    return payload;
+}
 
 const verifyToken = async (req, res, next ) => {
   
@@ -8,15 +16,25 @@ const verifyToken = async (req, res, next ) => {
     if (authHeaders) {
         const token = authHeaders.split(" ")[1];
 
-        jwt.verify(token, process.env.JWT_SECRET_KEY, (err, payload) => {
-            if (err) return res.status(400).json({
-                Error: err.message,
-                msg: "Not a valid token"})
-        
-            req.user = payload
+        try {
+            req.user = JWTverify();
             next();
-        });
-
+        } 
+        catch (err ) {
+            if (err instanceof jwt.TokenExpiredError) {
+                try {
+                    token = handleRefreshToken();
+                    req.user = JWTverify();
+                    next();
+                }
+                catch (err1) {
+                    return res.status(401).json({msg: "RFRESH TOKEN ERROR"})
+                } 
+            }
+            else {
+                return res.status(401).json({msg: "No Authorization headers were found!"})
+            }
+        }
        
     }
     else {
