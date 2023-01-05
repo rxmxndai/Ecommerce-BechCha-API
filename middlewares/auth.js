@@ -17,23 +17,26 @@ const verifyToken = async (req, res, next ) => {
         const token = authHeaders.split(" ")[1];
 
         try {
-            req.user = JWTverify();
+            req.user = JWTverify({token});
+
             next();
         } 
         catch (err ) {
             if (err instanceof jwt.TokenExpiredError) {
                 try {
-                    token = handleRefreshToken();
-                    req.user = JWTverify();
+                    console.log("JWT expired. Attempting for new access token request!");
+                    token = await handleRefreshToken(req, res);
+                    console.log(token);
+                    req.user = JWTverify({token});
+                    console.log("Token refreshed!");
                     next();
                 }
                 catch (err1) {
                     return res.status(401).json({msg: "RFRESH TOKEN ERROR"})
                 } 
             }
-            else {
-                return res.status(401).json({msg: "No Authorization headers were found!"})
-            }
+
+            return res.status(401).json({msg: "No Authorization headers were found!"})
         }
        
     }

@@ -17,8 +17,8 @@ const app = express();
 //essentials
 app.use(cookieParser());
 app.use(cors({
-    credentials: true,
-    origin: true,
+    // credentials: true,
+    // origin: true,
   }))
 app.use(express.json());
 

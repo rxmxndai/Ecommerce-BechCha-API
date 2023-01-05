@@ -19,13 +19,17 @@ const handleRefreshToken = async (req, res) => {
                 msg: "Not the owner of current refresh token"
             }) // forbidden
 
-            const hackedUser = await User.findOne({ username: user.username }).exec();
+            const hackedUser = await User.findOne({ _id: user._id }).exec();
             hackedUser.refreshToken = [];
-            const result = await hackedUser.save();
-            console.log(result);
+            
+            const result = await hackedUser.save();    
         })
 
-        return res.status(403).json()
+        if (cookies.jwt) {
+            res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
+        }
+        
+        return res.status(403).json({msg: "Refresh token cleared!"})
     }
 
     // new refresh token arrray without current used refresh token
@@ -47,7 +51,7 @@ const handleRefreshToken = async (req, res) => {
             _id: decodedUser._id.toString(),
             isAdmin: decodedUser.isAdmin,
         }
-        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "60s" });
+        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "10s" });
         const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "7d" });
 
         // Saving refreshToken with current user
