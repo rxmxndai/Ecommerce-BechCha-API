@@ -32,7 +32,7 @@ const handleRefreshToken = async (req, res) => {
         return res.status(403).json({msg: "Refresh token cleared!"})
     }
 
-    // new refresh token arrray without current used refresh token
+    
     const newRefreshTokenArray = foundUser.refreshToken.filter(token => token !== refreshToken)
 
 
