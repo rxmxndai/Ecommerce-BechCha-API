@@ -77,7 +77,7 @@ router.get("/", async (req, res) =>{
 
     // query
     const queryNew = req.query.new
-    const queryCategory = req.query.category
+    const queryCategoryID = req.query.category
 
     try {
         // sort ({parameter: asc or desc})
@@ -89,9 +89,9 @@ router.get("/", async (req, res) =>{
             products= await Product.find()
                             // .sort({createdAt: -1}).limit()
         }
-        else if (queryCategory) {
+        else if (queryCategoryID) {
             products= await Product.find( {
-                category: queryCategory
+                category: queryCategoryID
             })
             .sort({createdAt: -1}).limit()
         }
