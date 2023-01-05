@@ -22,7 +22,8 @@ const handleRefreshToken = async (req, res) => {
             const hackedUser = await User.findOne({ _id: user._id }).exec();
             hackedUser.refreshToken = [];
             
-            const result = await hackedUser.save();    
+            const result = await hackedUser.save();
+            console.log("User refresh token deleted!");    
         })
 
         if (cookies.jwt) {
@@ -32,7 +33,7 @@ const handleRefreshToken = async (req, res) => {
         return res.status(403).json({msg: "Refresh token cleared!"})
     }
 
-    
+    // new refresh token arrray without current used refresh token
     const newRefreshTokenArray = foundUser.refreshToken.filter(token => token !== refreshToken)
 
 
