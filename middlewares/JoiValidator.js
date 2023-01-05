@@ -33,8 +33,8 @@ const productSchema = Joi.object({
     description: Joi.string().max(300).required,
     img: Joi.binary().required(),
     category: Joi.string().hex().required(),
-    
-
+    specification: Joi.object().pattern(Joi.string(), Joi.string()),
+    price: Joi.Number(),
 })
 
 const JOIuserSchemaValidate = validator(signUpSchema);
