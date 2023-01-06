@@ -5,11 +5,11 @@ const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/
 const OTPmodel = require("../models/OTPverification");
 const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
 
-const handleRefreshToken = require("../middlewares/refreshTokenController")
+const {handleRefreshTokenAPI} = require("../middlewares/refreshTokenController")
 
 
 
-router.post("/auth/refresh", handleRefreshToken);
+router.post("/auth/refresh", handleRefreshTokenAPI);
 
 // register user
 router.post("/register", async (req, res) => {
