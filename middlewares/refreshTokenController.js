@@ -4,78 +4,92 @@ const jwt = require("jsonwebtoken")
 const handleRefreshToken = async (req, res) => {
 
     const cookies = req.cookies;
-
-    if (!cookies?.jwt) return res.status(401).json("Refresh token not available") // unauthorized
-
     const refreshToken = cookies.jwt;
+
+    // user exist? with this refresh token
     const foundUser = await User.findOne({ refreshToken }).exec()
 
-    // if the user with refresh token is not found
+    // if the user with refresh token is not found // must be misuse of refresh token
     if (!foundUser) {
         console.log("No user found with the current refresh token.");
-        try {
-            const user = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
 
-            const hackedUser = await User.findOne({ _id: user._id }).exec();
+        try {
+            const payload = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
+
+            const hackedUser = await User.findOne({ _id: payload._id }).exec();
+            // delete all authentication
             hackedUser.refreshToken = [];
-            
-            const result = await hackedUser.save();
-            console.log("User refresh token deleted!");    
-            if (cookies.jwt) {
-                res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
+                 
+            await hackedUser.save();
+            console.log("User refresh token deleted in database!");    
+            if (cookies?.jwt) {
+                res.clearCookie("jwt", { httpOnly: true, sameSite: "None" })
             }
+            console.log("Refresh token cleared in cookies!");
             return res.status(403).json({msg: "Refresh token cleared!"})
         }
         catch (err) {
-            return res.status(401).json({msg: "Not the owner of current refresh token!"})
+            return res.status(401).json({msg: "Invalid refresh token usage"});
         }
     }
+    else {
 
-    console.log("User with the refresh token found!");
-    // new refresh token arrray without current used refresh token
-    const newRefreshTokenArray = await foundUser.refreshToken.filter(token => token !== refreshToken)
+        // if user with this refresh token is found
+        console.log("User with the refresh token found!");
 
 
-    // valid token
-    jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, decodedUser) => {
+        // new refresh token arrray without current used refresh token
+        // deletes the current refreshToken and stores in [newRefreshTokenArray]
+        let newRefreshTokenArray = foundUser.refreshToken.length >= 1 ? 
+                        foundUser.refreshToken.filter(token => token !== refreshToken)
+                        : [];
 
-        if (err) {
+        // now we have a valid refresh token which is also present in database
+        try {
+            const payload = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
+
+
+            if (payload.exp < Date.now() / 1000 ) {
+                // generate new accessToken and refreshToken with valid payload
+                const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+                const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+
+
+                // Saving refreshToken with current user in database
+                foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+
+                try {
+                    const result = await foundUser.save();
+
+                    // set refresh token in cookie
+                    const options = {
+                        sameSite: "None",
+                        expires: new Date(
+                            Date.now() + 7 * 24 * 60 * 60 * 1000
+                        ),
+                        httpOnly: true,
+                    };
+                    res.cookie('jwt', newRefreshToken, options);
+
+                    req.user = payload;
+                    console.log("Token refreshed!");
+                    return res.status(200).json({ token: accessToken })
+                }
+
+                catch (err) {
+                    return res.status(500).json({"msg": err.message})
+                }
+            }
+
+            
+        }
+        catch (err) {
+            // if jwt not verified
             foundUser.refreshToken = [...newRefreshTokenArray];
             const result = await foundUser.save()
-            console.log(result);
+            console.log({error: err.message});
         }
-        if (err || foundUser._id.toString() !== decodedUser._id) return res.status(403).json("This refresh token does not belongs to you")
-
-        // refresh token still valid
-        const payload = {
-            _id: decodedUser._id.toString(),
-            isAdmin: decodedUser.isAdmin,
-        }
-        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "10s" });
-        const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "7d" });
-
-        // Saving refreshToken with current user
-        foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
-        try {
-            const result = await foundUser.save();
-
-            // set refresh token in cookie
-            const options = {
-                sameSite: "None",
-                expires: new Date(
-                    Date.now() + 7 * 24 * 60 * 60 * 1000
-                ),
-                httpOnly: true,
-            };
-            res.cookie('jwt', newRefreshToken, options);
-
-            return res.status(200).json({ token: accessToken })
-        }
-
-        catch (err) {
-            return res.status(500).json({"msg": err.message})
-        }
-    })
+    }
 }
 
 

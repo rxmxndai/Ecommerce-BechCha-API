@@ -1,38 +1,45 @@
 const jwt = require("jsonwebtoken");
+// const handleRefreshToken = require("./refreshTokenController");
+const axios = require("axios");
 const handleRefreshToken = require("./refreshTokenController");
 
 
 
-const JWTverify = ({token}) => {
-    const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    return payload;
-}
+const verifyToken =  async (req, res, next ) => {
 
-const verifyToken = async (req, res, next ) => {
-  
-  
-    const authHeaders =req.headers['authorization']
-  
-    if (authHeaders) {
-        let token = authHeaders.split(" ")[1];
+    const authHeaders = req.headers['authorization']
+    let accessToken = authHeaders?.split(" ")[1];
 
+    const cookies = req.cookies;
+
+    if (accessoken && cookies?.jwt) {
         try {
-            req.user = JWTverify({token});
+            const payload = jwt.verify(accessToken, process.env.JWT_SECRET_KEY);
+            req.user = payload;
             next();
         } 
         catch (err ) {
+
             if (err instanceof jwt.TokenExpiredError) {
-                console.log("JWT expired. Attempting for new access token request!");
-                await handleRefreshToken(req, res);
-                token = req.cookies.jwt;
-                req.user = JWTverify({token});
-                console.log("Token refreshed!");
-                next();
+                console.log("Access token expired!. Attempt for new token");
+                try {
+                    const {token} = await handleRefreshToken(req, res);
+                    const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
+                    req.user = payload;
+                    next();
+                }
+                catch (e) {
+                    console.log(e);
+                }
+                
+                console.log(req.user);
             }
             else {
-                return res.status(401).json({msg: "No Authorization headers were found!"})
+                return res.status(401).json({
+                    err,
+                    msg: "No Valid Authorization headers were found! [ACCESS TOKEN ERROR]"})
+                }
             }
-        }
     }
     else {
         return res.status(401).json("Not authenticated !");

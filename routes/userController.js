@@ -118,7 +118,7 @@ router.post("/login", async (req, res) => {
     }
 
     // create access token
-    const tokens = await user.generateAuthToken("7d", "60s");
+    const tokens = await user.generateAuthToken("7d", "10s");
 
     const newRefreshToken = tokens.refreshToken;
     const accessToken = tokens.accessToken;

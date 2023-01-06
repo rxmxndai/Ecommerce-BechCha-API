@@ -13,10 +13,10 @@ router.post("/", verifyTokenAndAdmin, async (req, res, next) => {
 
     try {
         const savedProduct = await newProduct.save();
-        res.status(201).json(savedProduct);
+        return res.status(201).json(savedProduct);
     }
     catch (err) {
-        res.status(500).json(err.message)
+        return res.status(500).json(err.message)
     }
 })
 
@@ -32,7 +32,7 @@ router.put( "/:id", verifyTokenAndAdmin, async (req, res) => {
                 },
                 { new: true }
             )  
-
+            console.log("Product added!");
             res.status(201).json( updatedProduct );
         }
         catch (err) {
