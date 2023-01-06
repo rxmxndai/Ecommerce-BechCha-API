@@ -20,7 +20,10 @@ const productSchema = new mongoose.Schema( {
         }, 
         specification: {
             type: Map,
-            of: String
+            of: [{
+                type: String,
+            }],
+            keys: String
         }, 
         price: {
             type: Number, 

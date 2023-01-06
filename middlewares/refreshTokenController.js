@@ -10,31 +10,30 @@ const handleRefreshToken = async (req, res) => {
     const refreshToken = cookies.jwt;
     const foundUser = await User.findOne({ refreshToken }).exec()
 
-    // refresh token found but not the correct user
+    // if the user with refresh token is not found
     if (!foundUser) {
-        jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, user) => {
-
-            if (err) return res.status(403).json({
-                error: err,
-                msg: "Not the owner of current refresh token"
-            }) // forbidden
+        console.log("No user found with the current refresh token.");
+        try {
+            const user = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
 
             const hackedUser = await User.findOne({ _id: user._id }).exec();
             hackedUser.refreshToken = [];
             
             const result = await hackedUser.save();
             console.log("User refresh token deleted!");    
-        })
-
-        if (cookies.jwt) {
-            res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
+            if (cookies.jwt) {
+                res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
+            }
+            return res.status(403).json({msg: "Refresh token cleared!"})
         }
-        
-        return res.status(403).json({msg: "Refresh token cleared!"})
+        catch (err) {
+            return res.status(401).json({msg: "Not the owner of current refresh token!"})
+        }
     }
 
+    console.log("User with the refresh token found!");
     // new refresh token arrray without current used refresh token
-    const newRefreshTokenArray = foundUser.refreshToken.filter(token => token !== refreshToken)
+    const newRefreshTokenArray = await foundUser.refreshToken.filter(token => token !== refreshToken)
 
 
     // valid token
@@ -70,7 +69,7 @@ const handleRefreshToken = async (req, res) => {
             };
             res.cookie('jwt', newRefreshToken, options);
 
-            res.status(200).json({ accessToken })
+            return res.status(200).json({ token: accessToken })
         }
 
         catch (err) {
