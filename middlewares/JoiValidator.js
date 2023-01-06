@@ -37,6 +37,8 @@ const productSchema = Joi.object({
     price: Joi.number().min(0).max(100).required()
 })
 
+
+
 const JOIuserSchemaValidate = validator(signUpSchema);
 const JOIproductSchemaValidate = validator(productSchema);
 

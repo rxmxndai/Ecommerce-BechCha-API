@@ -3,6 +3,7 @@ const Category  = require("../models/Category");
 
 const router = require("express").Router();
 const { verifyTokenAndAdmin }  = require("../middlewares/auth");
+const { JOIproductSchemaValidate } = require("../middlewares/JoiValidator");
 
 
 
@@ -11,8 +12,22 @@ router.post("/", verifyTokenAndAdmin, async (req, res, next) => {
     
     const newProduct = new Product(req.body)
 
+    const result = JOIproductSchemaValidate(req.body);
+    const { error, value } = result;
+    const valid = error == null;
+
+
+    if (!valid) {
+        return res.status(900).json({
+            Error: error.details,
+            msg: "Not valid credentials"
+        })
+    }
+
+    const product = new Product(value);
+    
     try {
-        const savedProduct = await newProduct.save();
+        const savedProduct = await product.save();
         return res.status(201).json(savedProduct);
     }
     catch (err) {
