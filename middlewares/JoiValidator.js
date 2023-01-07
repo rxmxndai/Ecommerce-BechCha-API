@@ -25,16 +25,12 @@ const signUpSchema = Joi.object({
 
 
 const productSchema = Joi.object({
-    name: Joi.string()
-    .alphanum()
-    .min(4)
-    .max(30)
-    .required(),
-    description: Joi.string().max(300).required,
+    title: Joi.string().alphanum().min(4).max(30).required(),
+    description: Joi.string().max(500).allow(''),
     img: Joi.binary().required(),
     category: Joi.string().hex().required(),
-    specification: Joi.object().pattern(Joi.string(), Joi.string()),
-    price: Joi.number().min(0).max(100).required()
+    specification: Joi.object().pattern(Joi.string(), Joi.array()),
+    price: Joi.number().min(0).max(1000000).required()
 })
 
 

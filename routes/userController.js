@@ -259,7 +259,7 @@ router.get("/find", verifyTokenAndAdmin, async (req, res) => {
     try {
         // sort ({parameter: asc or desc})
         // limit => pagination (limit(how many))
-        const users = query ? await User.find().sort({ _id: -1 }).limit(1) : await User.find();
+        const users = query ? await User.find({}).sort({ _id: -1 }).limit(1) : await User.find({});
 
         if (!users) throw new Error("No record found")
 

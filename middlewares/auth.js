@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 // const handleRefreshToken = require("./refreshTokenController");
 const axios = require("axios");
-const handleRefreshToken = require("./refreshTokenController");
+const {handleRefreshToken} = require("./refreshTokenController");
 
 
 

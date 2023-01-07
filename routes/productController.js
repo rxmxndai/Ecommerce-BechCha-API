@@ -8,9 +8,7 @@ const { JOIproductSchemaValidate } = require("../middlewares/JoiValidator");
 
 
 
-router.post("/", verifyTokenAndAdmin, async (req, res, next) => {
-    
-    const newProduct = new Product(req.body)
+router.post("/", verifyTokenAndAdmin, async (req, res) => {
 
     const result = JOIproductSchemaValidate(req.body);
     const { error, value } = result;
@@ -25,7 +23,7 @@ router.post("/", verifyTokenAndAdmin, async (req, res, next) => {
     }
 
     const product = new Product(value);
-    
+        
     try {
         const savedProduct = await product.save();
         return res.status(201).json(savedProduct);
@@ -113,16 +111,15 @@ router.get("/", async (req, res) =>{
             .sort({createdAt: -1}).limit()
         }
         else {
-            products = await Product.find();
+            products = await Product.find({});
         }
         
-
         if (!products) throw new Error("No record found")
 
-        res.status(200).json(...products)
+        return res.status(200).json(products)
     }
     catch (err) {
-        res.status(500).json(err.message)
+        return res.status(500).json(err.message)
     }
 } )
 
