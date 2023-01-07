@@ -67,8 +67,9 @@ router.get("/", async (req, res) => {
         if (!categories) return res.status(400).json({msg: "No products found"})
         
         const CategoryList = createCategories(categories);
+        
         return res.status(200).json({
-            CategoryList
+            ...CategoryList
         })
     }
     catch (err) {
