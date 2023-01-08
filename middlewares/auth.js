@@ -51,7 +51,6 @@ const verifyTokenAndAuthorization = (req, res, next) => {
 
         const user = await User.findOne({ _id: req.user._id })
         req.user = user;
-        console.log(req.user);
         if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
             next();
         }

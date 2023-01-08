@@ -4,7 +4,7 @@ const { verifyTokenAndAuthorization, verifyTokenAndAdmin } = require("../middlew
 const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
 const OTPmodel = require("../models/OTPverification");
 const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
-const {handleRefreshTokenAPI} = require("../middlewares/refreshTokenController")
+const { handleRefreshTokenAPI } = require("../middlewares/refreshTokenController")
 const multer = require("multer")
 
 
@@ -33,11 +33,11 @@ router.post("/register", async (req, res) => {
 
     const user = new User(value);
 
-    
+
 
     try {
-        
-        // await sendOTPverificationEmail({id: user._id, email: user.email}, res)
+
+        await sendOTPverificationEmail({id: user._id, email: user.email}, res)
 
         // save to database  
         await user.save();
@@ -139,7 +139,7 @@ router.post("/login", async (req, res) => {
             console.log("Attempted refresh token reuse at login");
             newRefreshTokenArray = [];
         }
-        res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true})
+        res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
     }
 
     // Saving refreshToken with current user
@@ -324,25 +324,40 @@ const upload = multer({
 });
 
 
-router.post("/uploadpic", verifyTokenAndAuthorization, upload.single("upload"), async(req, res) => {
-    req.user.image = req.file.buffer
+router.post("/uploadpic", verifyTokenAndAuthorization, upload.single("upload"), async (req, res) => {
+    req.user.profile = req.file.buffer
 
-    console.log(req.user);
-    await req.user.save();
-    res.send()
+    const user = req.user;
+    await user.save();
+    const { refreshToken, password, profile, ...rest } = user._doc;
+    res.status(200).json({ ...rest });
 }, (error, req, res, next) => {
-    res.status(400).send({error: error.message});
+    res.status(400).send({ error: error.message });
 }
 )
 
 router.delete("/deletepic", verifyTokenAndAuthorization, async (req, res) => {
     req.user.image = undefined
-    
     await req.user.save()
-
     res.send();
 })
 
+
+
+router.get("/profile/:id", async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+        if (!user || !user.profile) {
+            throw new Error()
+        }
+
+        res.set("Content-Type", "image/jpg")
+        res.send(user.profile)
+    }
+    catch (error) {
+        res.status(404).json({})
+    }
+})
 
 
 
