@@ -14,7 +14,7 @@ const categorySchema = new mongoose.Schema({
     parentId: {
         type: String
     },
-    img: {
+    image: {
         type: Buffer
     }
 } , 

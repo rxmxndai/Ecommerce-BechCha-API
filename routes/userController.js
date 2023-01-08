@@ -4,12 +4,12 @@ const { verifyTokenAndAuthorization, verifyTokenAndAdmin } = require("../middlew
 const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
 const OTPmodel = require("../models/OTPverification");
 const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
-
 const {handleRefreshTokenAPI} = require("../middlewares/refreshTokenController")
+const multer = require("multer")
 
 
 
-router.post("/auth/refresh", handleRefreshTokenAPI);
+// router.post("/auth/refresh", handleRefreshTokenAPI);
 
 // register user
 router.post("/register", async (req, res) => {
@@ -33,9 +33,12 @@ router.post("/register", async (req, res) => {
 
     const user = new User(value);
 
-    // await sendOTPverificationEmail({id: user._id, email: user.email}, res)
+    
 
     try {
+        
+        // await sendOTPverificationEmail({id: user._id, email: user.email}, res)
+
         // save to database  
         await user.save();
         return res.status(201).json(user);
@@ -58,12 +61,11 @@ router.post("/verifyOTP", async (req, res) => {
         }
 
         otp = otp.toString();
-        const userOTPrecords = await OTPmodel.find({ userId })
-        // otp records in database !? 
-        if (userOTPrecords <= 0) return res.status(403).json("OTP INVALID")
-
-        const { expiresAt } = userOTPrecords[0];
-        const hashedOTP = userOTPrecords[0].otp;
+        console.log("userId", userId);
+        const userOTPrecord = await OTPmodel.findOne({ userId })
+        console.log(userOTPrecord, "OTP RECORDS");
+        const expiresAt = userOTPrecord?.expiresAt;
+        const hashedOTP = userOTPrecord?.otp;
 
 
         // otp expired?
@@ -81,7 +83,7 @@ router.post("/verifyOTP", async (req, res) => {
         if (!validOTP) return res.status(403).json({ msg: "OTP do not match" });
 
         // for success
-        await User.updateOne({ id: userId }, { isVerified: true })
+        await User.updateOne({ _id: userId }, { isVerified: true })
 
         res.status(200).json({
             status: "VERIFIED",
@@ -137,7 +139,7 @@ router.post("/login", async (req, res) => {
             console.log("Attempted refresh token reuse at login");
             newRefreshTokenArray = [];
         }
-        res.clearCookie("jwt", { httpOnly: true, sameSite: "None"})
+        res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true})
     }
 
     // Saving refreshToken with current user
@@ -151,14 +153,14 @@ router.post("/login", async (req, res) => {
         expires: new Date(
             Date.now() + 7 * 24 * 60 * 60 * 1000
         ),
-        httpOnly: true
+        httpOnly: true,
+        // secure: true
     };
 
     try {
         await user.save();
-
         res.cookie('jwt', newRefreshToken, options);
-        console.log("Login Successful\n");
+        console.log("Login Successful");
         const { refreshToken, password, ...rest } = user._doc;
         // send authorization roles and access token to user
         res.status(200).json({ ...rest, accessToken });
@@ -303,6 +305,45 @@ router.get("/stats", verifyTokenAndAdmin, async (req, res) => {
         res.status(500).json(err.message)
     }
 })
+
+
+
+
+// image upload using multer
+const upload = multer({
+    limits: {
+        fileSize: 1000000 //1mb file size
+    },
+    fileFilter(req, file, callback) {
+
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return callback(new Error("File must be an image."))
+        }
+        callback(undefined, true)
+    }
+});
+
+
+router.post("/uploadpic", verifyTokenAndAuthorization, upload.single("upload"), async(req, res) => {
+    req.user.image = req.file.buffer
+
+    console.log(req.user);
+    await req.user.save();
+    res.send()
+}, (error, req, res, next) => {
+    res.status(400).send({error: error.message});
+}
+)
+
+router.delete("/deletepic", verifyTokenAndAuthorization, async (req, res) => {
+    req.user.image = undefined
+    
+    await req.user.save()
+
+    res.send();
+})
+
+
 
 
 module.exports = router

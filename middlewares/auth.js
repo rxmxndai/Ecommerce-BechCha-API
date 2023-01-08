@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 // const handleRefreshToken = require("./refreshTokenController");
 const axios = require("axios");
 const {handleRefreshToken} = require("./refreshTokenController");
+const User = require("../models/User");
 
 
 
@@ -22,7 +23,7 @@ const verifyToken = async (req, res, next) => {
 
             if (err instanceof jwt.TokenExpiredError) {
                 console.log("Access token expired!. Attempt for new token");
-                await handleRefreshToken(req, res, (err, token) => {
+                await handleRefreshToken(req, res, async (err, token) => {
                     if (err) {
                         throw new Error(err);
                     }
@@ -46,9 +47,12 @@ const verifyToken = async (req, res, next) => {
 
 const verifyTokenAndAuthorization = (req, res, next) => {
 
-    verifyToken(req, res, () => {
-        console.log(req.params.id);
-        if (req.user._id === req.params.id || req.user.isAdmin) {
+    verifyToken(req, res, async () => {
+
+        const user = await User.findOne({ _id: req.user._id })
+        req.user = user;
+        console.log(req.user);
+        if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
             next();
         }
         else {

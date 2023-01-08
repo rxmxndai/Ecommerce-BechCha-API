@@ -1,7 +1,7 @@
 const Category = require("../models/Category")
 const router = require("express").Router()
 const slugify = require("slugify")
-const { verifyTokenAndAdmin } = require("../middlewares/auth")
+const { verifyTokenAndAdmin, verifyTokenAndAuthorization } = require("../middlewares/auth")
 const multer = require("multer")
 
 
@@ -99,30 +99,6 @@ router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
 })
 
 
-
-// image upload using multer
-const upload = multer({
-    dest: "CatImages",
-    limits: {
-        fileSize: 2000000 //2mb file size
-    },
-    fileFilter(req, file, callback) {
-
-        if (!file.originalname.endsWith(/\.(jpg|jpeg|png)$/)) {
-            return callback(new Error("File must be an image."))
-        }
-        callback()
-    }
-});
-
-
-const ErrorMiddleware = (req, res, next) => {
-    throw new Error("From the middleware");
-}
-
-router.post("/uploadpic", ErrorMiddleware, (req, res) => {
-    res.send()
-})
 
 module.exports = router
 
