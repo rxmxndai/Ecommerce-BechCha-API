@@ -2,7 +2,7 @@ const Category = require("../models/Category")
 const router = require("express").Router()
 const slugify = require("slugify")
 const { verifyTokenAndAdmin } = require("../middlewares/auth")
-
+const multer = require("multer")
 
 
 const createCategories = (categories, parentId = null) => {
@@ -67,9 +67,9 @@ router.get("/", async (req, res) => {
         if (!categories) return res.status(400).json({msg: "No products found"})
         
         const CategoryList = createCategories(categories);
-        
+    
         return res.status(200).json({
-            ...CategoryList
+            categories
         })
     }
     catch (err) {
@@ -98,6 +98,31 @@ router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
     }
 })
 
+
+
+// image upload using multer
+const upload = multer({
+    dest: "CatImages",
+    limits: {
+        fileSize: 2000000 //2mb file size
+    },
+    fileFilter(req, file, callback) {
+
+        if (!file.originalname.endsWith(/\.(jpg|jpeg|png)$/)) {
+            return callback(new Error("File must be an image."))
+        }
+        callback()
+    }
+});
+
+
+const ErrorMiddleware = (req, res, next) => {
+    throw new Error("From the middleware");
+}
+
+router.post("/uploadpic", ErrorMiddleware, (req, res) => {
+    res.send()
+})
 
 module.exports = router
 

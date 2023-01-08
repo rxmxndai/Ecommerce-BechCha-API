@@ -137,7 +137,7 @@ router.post("/login", async (req, res) => {
             console.log("Attempted refresh token reuse at login");
             newRefreshTokenArray = [];
         }
-        res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
+        res.clearCookie("jwt", { httpOnly: true, sameSite: "None"})
     }
 
     // Saving refreshToken with current user
