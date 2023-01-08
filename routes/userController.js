@@ -355,7 +355,7 @@ router.get("/profile/:id", async (req, res) => {
         res.send(user.profile)
     }
     catch (error) {
-        res.status(404).json({})
+        res.status(404).json({error})
     }
 })
 
