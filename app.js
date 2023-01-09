@@ -1,9 +1,10 @@
 const express = require("express");
-
 const dotenv = require("dotenv")
 dotenv.config();
 require('./database/mongoose')
 
+
+const errorHandler = require("./middlewares/errorHandler")
 const userRoute = require('./routes/userController')
 const productRoute = require("./routes/productController")
 const categoryRoute = require("./routes/categoryController")
@@ -27,6 +28,8 @@ app.use(express.json());
 app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
 app.use("/api/categories", categoryRoute);
+app.use(errorHandler);
+
 
 
 

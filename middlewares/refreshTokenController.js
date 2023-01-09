@@ -135,15 +135,11 @@ const handleRefreshTokenAPI = async (req, res, next) => {
 
             // generate new accessToken and refreshToken with valid payload
             console.log("aexpired detected");
-            const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY);
-            const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+            const user = await User.findById(payload._id);
+            const tokens = await user.generateAuthToken("30d", "10s");
 
-
-            // Saving refreshToken with current user in database
-            foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
-
-
-            const result = await foundUser.save();
+            const newRefreshToken = tokens.refreshToken;
+            const accessToken = tokens.accessToken; 
 
             // set refresh token in cookie
             const options = {

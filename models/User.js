@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { hashPass } = require("../middlewares/utils");
+const { hashPass } = require("../utils/utils");
 const jwt = require("jsonwebtoken");
 const { ref } = require("joi");
 
@@ -43,6 +43,7 @@ userSchema.methods.toJSON = function () {
 
     delete userObject.password
     delete userObject.refreshToken
+    delete userObject.profile
 
     return userObject
 }

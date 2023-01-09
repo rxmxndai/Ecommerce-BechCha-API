@@ -6,8 +6,6 @@ const { verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { JOIproductSchemaValidate } = require("../middlewares/JoiValidator");
 
 
-
-
 router.post("/", verifyTokenAndAdmin, async (req, res) => {
 
     const result = JOIproductSchemaValidate(req.body);

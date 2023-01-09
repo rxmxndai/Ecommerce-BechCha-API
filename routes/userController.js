@@ -1,18 +1,19 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const { verifyTokenAndAuthorization, verifyTokenAndAdmin } = require("../middlewares/auth");
-const { decryptHashedPass, sendOTPverificationEmail } = require("../middlewares/utils");
+const { decryptHashedPass, sendOTPverificationEmail } = require("../utils/utils");
 const OTPmodel = require("../models/OTPverification");
 const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
 const { handleRefreshTokenAPI } = require("../middlewares/refreshTokenController")
-const multer = require("multer")
+const multer = require("multer");
+const { tryCatch } = require("../utils/tryCatch");
 
 
 
 // router.post("/auth/refresh", handleRefreshTokenAPI);
 
 // register user
-router.post("/register", async (req, res) => {
+router.post("/register", tryCatch(async (req, res) => {
     // empty body?
     const duplicateUser = User.find({ email: req.body.email } || { username: req.body.username })
 
@@ -33,20 +34,10 @@ router.post("/register", async (req, res) => {
 
     const user = new User(value);
 
-
-
-    try {
-
-        await sendOTPverificationEmail({id: user._id, email: user.email}, res)
-
-        // save to database  
-        await user.save();
-        return res.status(201).json(user);
-    } catch (err) {
-        console.log(err.message)
-        return res.status(500).json(err);
-    }
-});
+    await user.save();
+    // await sendOTPverificationEmail({id: user._id, email: user.email}, res)
+    return res.status(201).json(user);
+}));
 
 
 // verify OTP
@@ -120,7 +111,7 @@ router.post("/login", async (req, res) => {
     }
 
     // create access token
-    const tokens = await user.generateAuthToken("7d", "10s");
+    const tokens = await user.generateAuthToken("30d", "10s");
 
     const newRefreshToken = tokens.refreshToken;
     const accessToken = tokens.accessToken;
@@ -355,7 +346,7 @@ router.get("/profile/:id", async (req, res) => {
         res.send(user.profile)
     }
     catch (error) {
-        res.status(404).json({error})
+        res.status(404).json({ error })
     }
 })
 
