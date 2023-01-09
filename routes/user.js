@@ -15,14 +15,6 @@ const {
     deleteProfile
 } = require("../controller/users")
 
-
-
-const User = require("../models/User");
-
-const { decryptHashedPass, sendOTPverificationEmail } = require("../utils/utils");
-const { tryCatch } = require("../utils/tryCatch");
-const OTPmodel = require("../models/OTPverification");
-const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
 const multer = require("multer");
 
 
@@ -64,24 +56,8 @@ router.get("/find", verifyTokenAndAdmin, getAllUser)
 router.get("/stats", verifyTokenAndAdmin, getStatsUser)
 
 
-
-
-// image upload using multer
-const upload = multer({
-    limits: {
-        fileSize: 1000000 //1mb file size
-    },
-    fileFilter(req, file, callback) {
-
-        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return callback(new Error("File must be an image."))
-        }
-        callback(undefined, true)
-    }
-});
-
-
-router.post("/uploadpic", verifyTokenAndAuthorization, upload.single("upload"), uploadProfile)
+// upload profile pic
+router.post("/uploadpic", verifyTokenAndAuthorization, uploadProfile)
 
 
 // delete profile pic

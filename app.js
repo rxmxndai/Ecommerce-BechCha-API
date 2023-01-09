@@ -5,9 +5,9 @@ require('./database/mongoose')
 
 
 const errorHandler = require("./middlewares/errorHandler")
-const userRoute = require('./routes/userController')
-const productRoute = require("./routes/productController")
-const categoryRoute = require("./routes/categoryController")
+const userRoute = require('./routes/user')
+const productRoute = require("./routes/product")
+const categoryRoute = require("./routes/category")
 
 var cookieParser = require('cookie-parser')
 var cors = require('cors')
