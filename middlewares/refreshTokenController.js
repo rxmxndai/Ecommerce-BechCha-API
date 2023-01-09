@@ -27,9 +27,8 @@ const handleRefreshToken = async (req, res, next) => {
         console.log("Refresh token cleared in cookies!");
         // if jwt not verified
         foundUser.refreshToken = [...newRefreshTokenArray];
-        const result = await foundUser.save()
+        await foundUser.save()
         next("Refresh token cleared!", null)
-
     }
 
     else {
@@ -38,31 +37,47 @@ const handleRefreshToken = async (req, res, next) => {
         console.log("User with the refresh token found!");
 
         // now we have a valid refresh token which is also present in database
+        const newTokenArray = user.refreshToken.filter(token => token != refreshToken);
 
-        const payload = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
+        jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, payload) => {
 
-        // generate new accessToken and refreshToken with valid payload
-        console.log("Expired access token detected!");
+            const user = await User.findById(payload._id);
 
-        const user = await User.findById(payload._id);
-        const tokens = await user.generateAuthToken("30d", "10s");
-        const accessToken = tokens.accessToken;
-        const newRefreshToken = tokens.refreshToken;
+            if (err) {
+                // old one
+                user.refreshToken = [...newTokenArray]
+                await user.save();
+            }
 
 
-        // set refresh token in cookie
-        const options = {
-            sameSite: "None",
-            expires: new Date(
-                Date.now() + 7 * 24 * 60 * 60 * 1000
-            ),
-            httpOnly: true,
-        };
-        res.cookie('jwt', newRefreshToken, options);
+            // generate new accessToken and refreshToken with valid payload
+            console.log("Expired access token detected!");
+            const tokens = await user.generateAuthToken("30d", "10s");
+            const accessToken = tokens.accessToken;
+            const newRefreshToken = tokens.refreshToken;
 
-        req.user = payload;
-        console.log("\nToken refreshed!\n");
-        next(null, accessToken)
+
+            // set refresh token in cookie
+            const options = {
+                sameSite: "None",
+                expires: new Date(
+                    Date.now() + 7 * 24 * 60 * 60 * 1000
+                ),
+                httpOnly: true,
+            };
+            res.cookie('jwt', newRefreshToken, options);
+
+
+            user.refreshToken = [...newTokenArray, newRefreshToken]
+            await user.save();
+
+
+            req.user = payload;
+            console.log("\nToken refreshed!\n");
+            next(null, accessToken)
+        });
+
+
     }
 }
 

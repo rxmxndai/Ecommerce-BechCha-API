@@ -54,24 +54,18 @@ const loginUser = tryCatch(async (req, res) => {
     const newRefreshToken = tokens.refreshToken;
     const accessToken = tokens.accessToken;
 
-    let newRefreshTokenArray = cookies?.jwt ?
-                            user.refreshToken.filter(token => token !== cookies.jwt)
-                            : user.refreshToken
 
+    const newTokenArray = 
+        !cookies?.jwt ? user.refreshToken            
+        :user.refreshToken.filter(token => token != cookies.jwt);
 
     if (cookies?.jwt) {
-        const refreshToken = cookies.jwt;
-        const foundToken = await User.findOne({ refreshToken }).exec()
-        // if detected reuse of refresh token
-        if (!foundToken) {
-            // console.log("Attempted refresh token reuse at login");
-            newRefreshTokenArray = [];
-        }
         res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
     }
 
-    // Saving refreshToken with current user
-    user.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+    user.refreshToken = [...newTokenArray, newRefreshToken]
+    await user.save();
+
 
 
     // set refresh token in cookie
@@ -83,8 +77,12 @@ const loginUser = tryCatch(async (req, res) => {
         httpOnly: true,
         // secure: true
     };
-    await user.save();
+
     res.cookie('jwt', newRefreshToken, options);
+
+    user.refreshToken = [...newTokenArray, newRefreshToken]
+    await user.save();
+
     const { refreshToken, password, ...rest } = user._doc;
     // send authorization roles and access token to user
     return res.status(200).json({ ...rest, accessToken });

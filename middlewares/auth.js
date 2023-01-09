@@ -28,37 +28,34 @@ const verifyToken = async (req, res, next) => {
             return next(new customError("No refresh token detected in cookies! please login again." , 400));
         }
         const payload = await JWTverify({ token: accessToken })
-        console.log("hahaahahhahhahahaaaaaaaaaaa");
         req.user = payload;
-        console.log(req.user._id);
-        next();
+        next(null, "ok");
     }
     catch (error) {
         if (error instanceof jwt.JsonWebTokenError) {
             console.log("Access token expired!. Attempt for new token");
             await handleRefreshToken(req, res, async (err, token) => {
                 if (err) {
-                    return res.status(401).json(err.message);
+                    return next(new customError("No accesstoken!", 400));
                 }
                 const payload = await JWTverify({token: token});
                 req.user = payload;
                 next();
             });
         }
-
-        return next(new customError(error , 400));
     }
 }
 
 const verifyTokenAndAuthorization = async (req, res, next) => {
 
     await verifyToken(req, res, async (err, response) => {
-
+        console.log("error aayo");
         if (err) return next(new customError(err , 400));
 
         const user = await User.findOne({ _id: req.user._id })
         req.user = user;
 
+        console.log(req.user._id, "\t", req.params.id);
         if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
             next();
         }
@@ -67,13 +64,17 @@ const verifyTokenAndAuthorization = async (req, res, next) => {
 
 
 const verifyTokenAndAdmin = (req, res, next) => {
-    verifyToken(req, res, () => {
+
+    verifyToken(req, res, async (err, response) => {
+        
+        if (err) {
+            return next(new customError(err , 400));
+        }
+
         if (req.user.isAdmin) {
             next();
         }
-        else {
-            return res.status(403).json({ msg: "Only admin can handle the following request" });
-        }
+    
     })
 }
 

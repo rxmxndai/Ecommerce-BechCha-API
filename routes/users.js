@@ -13,7 +13,7 @@ const {
     uploadProfile,
     getProfile,
     deleteProfile
-} = require("../controller/users")
+} = require("../controller/Users/user")
 
 const multer = require("multer");
 

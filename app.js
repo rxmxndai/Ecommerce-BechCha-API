@@ -4,9 +4,9 @@ dotenv.config();
 require('./database/mongoose')
 
 
-const userRoute = require('./routes/user')
-const productRoute = require("./routes/product")
-const categoryRoute = require("./routes/category")
+const userRoute = require('./routes/users')
+const productRoute = require("./routes/products")
+const categoryRoute = require("./routes/categories")
 const errorHandler = require("./middlewares/errorHandler")
 
 var cookieParser = require('cookie-parser')
@@ -26,8 +26,8 @@ app.use(express.json());
 
 // use routers
 app.use("/api/users", userRoute);
-app.use("/api/products", productRoute);
 app.use("/api/categories", categoryRoute);
+app.use("/api/products", productRoute);
 app.use( errorHandler);
 
 
