@@ -1,7 +1,7 @@
 const User = require("../models/User");
 
 const { decryptHashedPass, sendOTPverificationEmail } = require("../utils/utils");
-const { tryCatch } = require("../utils/tryCatch");
+const tryCatch = require("../utils/tryCatch");
 const OTPmodel = require("../models/OTPverification");
 const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
 const multer = require("multer");
@@ -246,24 +246,12 @@ const getStatsUser = tryCatch(async (req, res) => {
 })
 
 
-// image upload using multer
-const upload = multer({
-    limits: {
-        fileSize: 1000000 //1mb file size
-    },
-    fileFilter(req, file, callback) {
-
-        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return callback(new Error("File must be an image."))
-        }
-        callback(undefined, true)
-    }
-});
 
 
-const uploadProfile = tryCatch( upload.single("upload"), async (req, res) => {
+
+const uploadProfile = tryCatch( async (req, res) => {
+    console.log("check");
     req.user.profile = req.file.buffer
-
     const user = req.user;
     await user.save();
     const { refreshToken, password, profile, ...rest } = user._doc;

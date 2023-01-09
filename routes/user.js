@@ -56,8 +56,23 @@ router.get("/find", verifyTokenAndAdmin, getAllUser)
 router.get("/stats", verifyTokenAndAdmin, getStatsUser)
 
 
+
+// image upload using multer
+const upload = multer({
+    limits: {
+        fileSize: 1000000 //1mb file size
+    },
+    fileFilter(req, file, callback) {
+
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return callback(new Error("File must be an image."))
+        }
+        callback(undefined, true)
+    }
+});
+
 // upload profile pic
-router.post("/uploadpic", verifyTokenAndAuthorization, uploadProfile)
+router.post("/uploadpic", verifyTokenAndAuthorization, upload.single("upload"), uploadProfile)
 
 
 // delete profile pic

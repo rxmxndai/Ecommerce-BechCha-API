@@ -1,11 +1,13 @@
-const jwt = require("jsonwebtoken");
-const { handleRefreshToken } = require("../middlewares/refreshTokenController");
+// exports.tryCatch = (controller) => async (req, res, next) => {
+//     try {
+//         await controller(req, res)
+//     }
+//     catch (err) {
+//         next(err)
+//     }
+// }
 
-exports.tryCatch = (controller) => async (req, res, next) => {
-    try {
-        await controller(req, res)
-    }
-    catch (err) {
-        next(err)
-    }
-}
+
+module.exports = (theFunc) => async(req, res, next) => {
+    Promise.resolve(theFunc(req, res, next)).catch(next);
+};

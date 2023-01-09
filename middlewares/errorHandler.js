@@ -8,8 +8,7 @@ const errorHandler = async (error, req, res, next) => {
     return res.status(error.statusCode).json({msg: error.message})
   }
 
-
-  console.log("sadasdad");
+  console.log(error);
   return res.status(500).send(`Error: ${error.message}`);
 };
 

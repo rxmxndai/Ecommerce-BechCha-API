@@ -4,10 +4,10 @@ dotenv.config();
 require('./database/mongoose')
 
 
-const errorHandler = require("./middlewares/errorHandler")
 const userRoute = require('./routes/user')
 const productRoute = require("./routes/product")
 const categoryRoute = require("./routes/category")
+const errorHandler = require("./middlewares/errorHandler")
 
 var cookieParser = require('cookie-parser')
 var cors = require('cors')
@@ -28,7 +28,7 @@ app.use(express.json());
 app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
 app.use("/api/categories", categoryRoute);
-app.use(errorHandler);
+app.use( errorHandler);
 
 
 
