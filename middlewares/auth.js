@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const customError = require("../utils/customError");
+const tryCatch = require("../utils/tryCatch");
 const { handleRefreshToken } = require("./refreshTokenController");
 
 
@@ -18,7 +19,14 @@ const verifyToken = async (req, res, next) => {
     const authHeaders = req.headers['authorization']
     let accessToken = authHeaders?.split(" ")[1];
 
+    const cookies = req.cookies;
+    const refreshToken = cookies.jwt;
+
+
     try {
+        if (refreshToken === undefined) {
+            return next(new customError("No refresh token detected in cookies! please login again." , 400));
+        }
         const payload = await JWTverify({ token: accessToken })
         console.log("hahaahahhahhahahaaaaaaaaaaa");
         req.user = payload;
@@ -37,12 +45,17 @@ const verifyToken = async (req, res, next) => {
                 next();
             });
         }
+
+        return next(new customError(error , 400));
     }
 }
 
 const verifyTokenAndAuthorization = async (req, res, next) => {
 
-    verifyToken(req, res, async () => {
+    await verifyToken(req, res, async (err, response) => {
+
+        if (err) return next(new customError(err , 400));
+
         const user = await User.findOne({ _id: req.user._id })
         req.user = user;
 

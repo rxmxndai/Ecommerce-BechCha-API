@@ -1,11 +1,11 @@
-const User = require("../models/User");
+const User = require("../../models/User");
 
-const { decryptHashedPass, sendOTPverificationEmail } = require("../utils/utils");
-const tryCatch = require("../utils/tryCatch");
-const OTPmodel = require("../models/OTPverification");
-const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
+const { decryptHashedPass, sendOTPverificationEmail } = require("../../utils/utils");
+const tryCatch = require("../../utils/tryCatch");
+const OTPmodel = require("../../models/OTPverification");
+const { JOIuserSchemaValidate } = require("../../middlewares/JoiValidator")
 const multer = require("multer");
-const customError = require("../utils/customError");
+const customError = require("../../utils/customError");
 
 
 

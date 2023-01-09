@@ -8,8 +8,6 @@ const handleRefreshToken = async (req, res, next) => {
     const cookies = req.cookies;
     const refreshToken = cookies.jwt;
 
-    if (!refreshToken) throw new customError("No refresh token found! Please login again.", 401);
-
     // user exist? with this refresh token
     const foundUser = await User.findOne({ refreshToken }).exec()
 

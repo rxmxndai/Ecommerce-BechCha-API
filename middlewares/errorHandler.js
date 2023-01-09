@@ -1,15 +1,17 @@
 // custom error handler middleware
 const customError = require("../utils/customError");
 
-const errorHandler = async (error, req, res, next) => {
+const errorHandler = async (err, req, res, next) => {
 
-  if (error instanceof customError) {
-    console.log("Error Handler Invoked!");
-    return res.status(error.statusCode).json({msg: error.message})
+  if (err instanceof customError) {
+    return res.status(err.statusCode).json({msg: err.message})
   }
 
-  console.log(error);
-  return res.status(500).send(`Error: ${error.message}`);
+
+  return res.status(500).send(`Error: ${err.message}`);
 };
+
+
+
 
 module.exports = errorHandler
