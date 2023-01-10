@@ -53,7 +53,7 @@ const loginUser = tryCatch(async (req, res) => {
 
         
     // create access token
-    const tokens = await user.generateAuthToken("30d", "10s");
+    const tokens = await user.generateAuthToken({rTexpiry: "30d", aTexpiry: "15m"});
     const newRefreshToken = tokens.refreshToken;
     const accessToken = tokens.accessToken;
 
@@ -74,7 +74,7 @@ const loginUser = tryCatch(async (req, res) => {
             Date.now() + 30 * 24 * 60 * 60 * 1000
         ),
         httpOnly: true,
-        // secure: true
+        secure: true
     };
 
     res.cookie('jwt', newRefreshToken, options);
@@ -82,7 +82,7 @@ const loginUser = tryCatch(async (req, res) => {
     user.refreshToken = [...newTokenArray, newRefreshToken]
     await user.save();
 
-    const { refreshToken, password, ...rest } = user._doc;
+    const { refreshToken, password, profile, ...rest } = user._doc;
     // send authorization roles and access token to user
     return res.status(200).json({ ...rest, accessToken });
 });
@@ -247,12 +247,10 @@ const getStatsUser = tryCatch(async (req, res) => {
 
 
 const uploadProfile = tryCatch( async (req, res) => {
-    console.log("check");
-    req.user.profile = req.file.buffer
-    const user = req.user;
-    await user.save();
-    const { refreshToken, password, profile, ...rest } = user._doc;
-    res.status(200).json({ ...rest });
+    const userP = await User.findOne({_id: req.params.id})
+    userP.profile = req.file.buffer
+    const user = await userP.save();
+    return res.status(200).json(user);
 })
 
 
@@ -260,9 +258,13 @@ const uploadProfile = tryCatch( async (req, res) => {
 
 
 const deleteProfile = tryCatch(async (req, res) => {
-    req.user.image = undefined
-    await req.user.save()
-    res.send();
+    
+    const userP = await User.findOne({_id: req.params.id})
+
+    userP.profile = undefined;
+
+    const user = await userP.save();
+    return res.status(202).json(user);
 })
 
 
@@ -273,7 +275,7 @@ const deleteProfile = tryCatch(async (req, res) => {
 const getProfile = tryCatch(async (req, res) => {
         const user = await User.findById(req.params.id)
         if (!user || !user.profile) {
-            throw new Error("User has no profile")
+            throw new customError("User has no profile", 404)
         }
 
         res.set("Content-Type", "image/jpg")

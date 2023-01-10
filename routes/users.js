@@ -16,6 +16,7 @@ const {
 } = require("../controller/Users/user")
 
 const multer = require("multer");
+const customError = require("../utils/customError");
 
 
 
@@ -65,22 +66,22 @@ const upload = multer({
     fileFilter(req, file, callback) {
 
         if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return callback(new Error("File must be an image."))
+            return callback(new customError("File must be an image.", 400))
         }
         callback(undefined, true)
     }
 });
 
 // upload profile pic
-router.post("/uploadpic", verifyTokenAndAuthorization, upload.single("upload"), uploadProfile)
+router.post("/profile/:id", verifyTokenAndAuthorization, upload.single("upload"), uploadProfile)
 
 
 // delete profile pic
-router.delete("/deletepic", verifyTokenAndAuthorization, deleteProfile);
+router.delete("/profile/:id", verifyTokenAndAuthorization, deleteProfile);
 
 
-// delete profile pic
-router.get("/profile/:id", verifyTokenAndAdmin, getProfile);
+// get one profile pic
+router.get("/profile/:id", verifyTokenAndAuthorization, getProfile);
 
 
 

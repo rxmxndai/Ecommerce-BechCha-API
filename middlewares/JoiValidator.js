@@ -1,9 +1,7 @@
 const Joi = require("joi");
-const customError = require("../utils/customError");
-const tryCatch = require("../utils/tryCatch")
 
 const validator = (schema) => (payload) => {
-    return schema.validate(payload)
+    return schema.validate(payload, {allowUnknown: true})
 }
                                                         
 
@@ -30,7 +28,6 @@ const signUpSchema = Joi.object({
 
 const productSchema = Joi.object({
     title: Joi.string()
-            .alphanum()
             .min(4).max(30)
             .required(),
     description: Joi.string()

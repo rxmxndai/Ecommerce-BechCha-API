@@ -50,7 +50,7 @@ userSchema.methods.toJSON = function () {
 
 
 
-userSchema.methods.generateAuthToken = async function ( rTexpiry, aTexpiry )  {
+userSchema.methods.generateAuthToken = async function ( {rTexpiry, aTexpiry} )  {
     const user = this
     
     if (!user) throw new Error("No user")

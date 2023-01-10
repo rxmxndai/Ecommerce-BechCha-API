@@ -1,13 +1,19 @@
 const User = require("../models/User")
 const jwt = require("jsonwebtoken");
+const customError = require("../utils/customError");
 
 const handleRefreshToken = async (req, res, next) => {
 
     const cookies = req.cookies;
     const refreshToken = cookies.jwt;
 
+    if (!refreshToken) {
+        return next(new customError("No refresh token detected in cookies! please login again." , 400));
+    }
+
     // user exist? with this refresh token
     const foundUser = await User.findOne({ refreshToken }).exec()
+    console.log(foundUser);
 
     // if the user with refresh token is not found // must be misuse of refresh token
     if (!foundUser) {
@@ -20,12 +26,10 @@ const handleRefreshToken = async (req, res, next) => {
         hackedUser.refreshToken = [];
 
         await hackedUser.save();
-        console.log("User refresh token deleted in database!");
         if (cookies?.jwt) {
-            res.clearCookie("jwt", { httpOnly: true, sameSite: "None" })
+            res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true})
         }
-        console.log("Refresh token cleared in cookies!");
-        next("Refresh token cleared!", null)
+        next(new customError("Refresh token cleared!", 200))
     }
 
     else {
@@ -52,11 +56,12 @@ const handleRefreshToken = async (req, res, next) => {
 
             // generate new accessToken and refreshToken with valid payload
             console.log("Expired access token detected!");
-            const tokens = await foundUser.generateAuthToken("30d", "10s");
+            const tokens = await foundUser.generateAuthToken({rTexpiry: "30d", aTexpiry: "15m"});
             const accessToken = tokens.accessToken;
             const newRefreshToken = tokens.refreshToken;
 
-
+            foundUser.refreshToken = [...newTokenArray, newRefreshToken]
+            await foundUser.save();
             // set refresh token in cookie
             const options = {
                 sameSite: "None",
@@ -64,6 +69,7 @@ const handleRefreshToken = async (req, res, next) => {
                     Date.now() + 7 * 24 * 60 * 60 * 1000
                 ),
                 httpOnly: true,
+                secure: true
             };
             res.cookie('jwt', newRefreshToken, options);
             req.user = payload;

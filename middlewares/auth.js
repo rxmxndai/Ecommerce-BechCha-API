@@ -19,14 +19,8 @@ const verifyToken = async (req, res, next) => {
     const authHeaders = req.headers['authorization']
     let accessToken = authHeaders?.split(" ")[1];
 
-    const cookies = req.cookies;
-    const refreshToken = cookies.jwt;
-
 
     try {
-        if (refreshToken === undefined) {
-            return next(new customError("No refresh token detected in cookies! please login again." , 400));
-        }
         const payload = await JWTverify({ token: accessToken })
         req.user = payload;
         next(null, "ok");
@@ -36,11 +30,12 @@ const verifyToken = async (req, res, next) => {
             console.log("Access token expired!. Attempt for new token");
             await handleRefreshToken(req, res, async (err, token) => {
                 if (err) {
-                    return next(new customError(err, 400));
+                    return next(err, null);
                 }
+                console.log("Access token refreshed!");
                 const payload = await JWTverify({token: token});
                 req.user = payload;
-                next();
+                next(null, payload);
             });
         }
     }
@@ -49,12 +44,12 @@ const verifyToken = async (req, res, next) => {
 const verifyTokenAndAuthorization = async (req, res, next) => {
 
     await verifyToken(req, res, async (err, response) => {
-        if (err) return next(new customError(err , 400));
+        if (err) return next(err);
 
         const user = await User.findOne({ _id: req.user._id })
         req.user = user;
 
-        console.log(req.user._id, "\t", req.params.id);
+        // console.log(req.user._id, "\t", req.params.id);
         if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
             next();
         }
@@ -67,7 +62,7 @@ const verifyTokenAndAdmin = (req, res, next) => {
     verifyToken(req, res, async (err, response) => {
         
         if (err) {
-            return next(new customError(err , 400));
+            return next(err, null);
         }
 
         if (req.user.isAdmin) {

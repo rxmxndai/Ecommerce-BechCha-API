@@ -30,6 +30,10 @@ const createCategories = (categories, parentId = null) => {
 }
 
 
+const categoryExist = tryCatch(async ({catID}) => {
+    return await Category.findById({_id: catID})
+})
+
 
 const addCategory = tryCatch(async (req, res) => {
     const payload = {

@@ -1,15 +1,20 @@
 const Product = require("../../models/Product");
 const { JOIproductSchemaValidate } = require("../../middlewares/JoiValidator");
 const tryCatch = require("../../utils/tryCatch");
-const Joi = require("joi");
 const customError = require("../../utils/customError");
+const { default: mongoose } = require("mongoose");
 
 
 const addProduct = tryCatch(async (req, res) => {
-
-    console.log("asdsadadadadadsadada");
+    
     const {error, value}= await JOIproductSchemaValidate(req.body);
-    if (error) return res.status(400).json(`${error.details[0].message}`);
+    
+
+    if (!mongoose.isValidObjectId(req.body.category)) throw new customError(`The category ID is invalid type!`, 400)
+
+    if (error) throw new customError(`${error.details[0].message}`, 400)
+
+
     const product = new Product(value);
 
     const savedProduct = await product.save();
