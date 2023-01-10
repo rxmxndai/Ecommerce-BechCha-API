@@ -2,10 +2,11 @@ const Category = require("../../models/Category")
 const tryCatch = require("../../utils/tryCatch");
 const slugify = require("slugify");
 const customError = require("../../utils/customError");
+const { default: mongoose } = require("mongoose");
 
 
 const createCategories = (categories, parentId = null) => {
-    const CategoriesList = [];
+    let CategoriesList = [];
     let categoryList;
 
     if (parentId == null) {
@@ -36,7 +37,12 @@ const addCategory = tryCatch(async (req, res) => {
         slug: slugify(req.body.name)
     }
 
-    if (req.body.parentId) payload.parentId = req.body.parentId;
+
+    if (req.body.parentId) {
+        if (!mongoose.isValidObjectId(req.body.parentId)) throw new customError("Not a valid parentID!", 400);
+        await Category.findById( req.body.parentId )
+        payload.parentId = req.body.parentId;
+    }
 
     const cat = new Category(payload);
 
