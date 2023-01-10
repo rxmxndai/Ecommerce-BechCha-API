@@ -1,26 +1,26 @@
 const Category = require("../../models/Category")
 const tryCatch = require("../../utils/tryCatch");
-const slugify = require("slugify")
+const slugify = require("slugify");
+const customError = require("../../utils/customError");
 
 
 const createCategories = (categories, parentId = null) => {
     const CategoriesList = [];
-    let category;
+    let categoryList;
 
     if (parentId == null) {
-        category = categories.filter( (cat) => cat.parentId == undefined )
+        categoryList = categories.filter((cat) => cat.parentId == undefined)
     }
     else {
-        category = categories.filter( (cat) => {
-            cat.parentId == parentId;
-        })
+        categoryList = categories.filter((cat) => cat.parentId == parentId)
     }
 
-    for ( let each of category ) {
+    for (let each of categoryList) {
         CategoriesList.push({
             _id: each._id,
             name: each.name,
             slug: each.slug,
+            // recursive calls for children with same data as parent Cat
             children: createCategories(categories, each._id)
         })
     }
@@ -30,51 +30,47 @@ const createCategories = (categories, parentId = null) => {
 
 
 
-const addCategory = tryCatch( async (req, res) => {
+const addCategory = tryCatch(async (req, res) => {
     const payload = {
         name: req.body.name,
         slug: slugify(req.body.name)
     }
 
-    if (req.body.parentId)  payload.parentId = req.body.parentId;
+    if (req.body.parentId) payload.parentId = req.body.parentId;
 
     const cat = new Category(payload);
-    
+
     await cat.save();
-    console.log(cat);
-    return res.status(201).json(...cat);
+    return res.status(201).json({ category: cat });
 })
 
 
 
-const deleteCategory = tryCatch( async (req, res) => {
+const deleteCategory = tryCatch(async (req, res) => {
+
     const categoryId = req.params.id;
 
-    if (!categoryId) return res.status(204).json("No category selected")
-    console.log(categoryId);
+    if (!categoryId) throw new customError("No category defined for delete!", 400);
 
-        const deletedCat = await Category.findByIdAndDelete( categoryId )
+    const deletedCat = await Category.findByIdAndDelete({ _id: categoryId })
 
-        if (!deletedCat) throw new Error("No record found")
-
-        return res.status(200).json({...deletedCat._doc});
-    }
-)
+    return res.status(200).json({ ...deletedCat._doc });
+})
 
 
 
 
 const getAllCategories = tryCatch(async (req, res) => {
 
-        const categories = await Category.find({}).exec()
-        
-        if (!categories) return res.status(400).json({msg: "No products found"})
-        
-        const CategoryList = createCategories(categories);
-    
-        return res.status(200).json({
-            categories
-        })
+    const categories = await Category.find({}).exec()
+
+    if (!categories) throw new customError("No categories exist!", 500);
+
+    const CategoryList = createCategories(categories);
+
+    return res.status(200).json({
+        CategoryList
+    })
 
 })
 

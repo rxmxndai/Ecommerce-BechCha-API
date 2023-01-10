@@ -37,7 +37,7 @@ const handleRefreshToken = async (req, res, next) => {
         console.log("User with the refresh token found!");
 
         // now we have a valid refresh token which is also present in database
-        const newTokenArray = user.refreshToken.filter(token => token != refreshToken);
+        const newTokenArray = foundUser.refreshToken.filter(token => token != refreshToken);
 
         jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, payload) => {
 

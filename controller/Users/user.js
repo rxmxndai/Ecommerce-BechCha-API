@@ -49,15 +49,17 @@ const loginUser = tryCatch(async (req, res) => {
         throw new customError("No user found", 404);
     }
 
+
+    const newTokenArray = 
+        !cookies?.jwt ? user.refreshToken            
+        :user.refreshToken.filter(token => token != cookies.jwt);
+
+        
     // create access token
     const tokens = await user.generateAuthToken("30d", "10s");
     const newRefreshToken = tokens.refreshToken;
     const accessToken = tokens.accessToken;
 
-
-    const newTokenArray = 
-        !cookies?.jwt ? user.refreshToken            
-        :user.refreshToken.filter(token => token != cookies.jwt);
 
     if (cookies?.jwt) {
         res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
