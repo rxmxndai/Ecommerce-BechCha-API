@@ -1,9 +1,13 @@
-const Joi = require("joi")
+const Joi = require("joi");
+const customError = require("../utils/customError");
+const tryCatch = require("../utils/tryCatch")
 
-const validator = (schema) => (payload) =>
-    schema.validate(payload)
+const validator = (schema) => (payload) => {
+    return schema.validate(payload)
+}
+                                                        
 
-    // {abortEarly: false}, {allowUnknown: true}
+
 
 const signUpSchema = Joi.object({
     username: Joi.string()
@@ -25,18 +29,34 @@ const signUpSchema = Joi.object({
 
 
 const productSchema = Joi.object({
-    title: Joi.string().alphanum().min(4).max(30).required(),
-    description: Joi.string().max(500).allow(''),
+    title: Joi.string()
+            .alphanum()
+            .min(4).max(30)
+            .required(),
+    description: Joi.string()
+            .max(500)
+            .allow(''),
     img: Joi.binary().required(),
-    category: Joi.string().hex().required(),
-    specification: Joi.object().pattern(Joi.string(), Joi.array()),
-    price: Joi.number().min(0).max(1000000).required()
+    category: Joi.string()
+            .hex()
+            .required(),
+    specification: Joi.object()
+    .       pattern(Joi.string(), Joi.array()),
+    price: Joi.number()
+            .min(0).max(1000000)
+            .required(),
 })
+
+
+
+
 
 
 
 const JOIuserSchemaValidate = validator(signUpSchema);
 const JOIproductSchemaValidate = validator(productSchema);
+
+
 
 module.exports = {
     JOIuserSchemaValidate,

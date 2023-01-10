@@ -4,52 +4,14 @@ const Category  = require("../models/Category");
 const router = require("express").Router();
 const { verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { JOIproductSchemaValidate } = require("../middlewares/JoiValidator");
+const { addProduct, updateProduct } = require("../controller/Product/product");
 
 
-router.post("/", verifyTokenAndAdmin, async (req, res) => {
-
-    const result = JOIproductSchemaValidate(req.body);
-    const { error, value } = result;
-    const valid = error == null;
-
-
-    if (!valid) {
-        return res.status(900).json({
-            Error: error.details,
-            msg: "Not valid credentials"
-        })
-    }
-
-    const product = new Product(value);
-        
-    try {
-        const savedProduct = await product.save();
-        return res.status(201).json(savedProduct);
-    }
-    catch (err) {
-        return res.status(500).json(err.message)
-    }
-})
+router.post("/", verifyTokenAndAdmin, addProduct)
 
 
 // update prod
-router.put( "/:id", verifyTokenAndAdmin, async (req, res) => {
-        
-        try {
-            const updatedProduct = await Product.findByIdAndUpdate( 
-                req.params.id, 
-                {
-                    $set: req.body,
-                },
-                { new: true }
-            )  
-            console.log("Product added!");
-            res.status(201).json( updatedProduct );
-        }
-        catch (err) {
-            res.status(500).json(err)
-        }
-})
+router.put( "/:id", verifyTokenAndAdmin, updateProduct)
 
 
 router.delete("/:id", verifyTokenAndAdmin, async (req, res, next) => {

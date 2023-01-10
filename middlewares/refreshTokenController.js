@@ -1,7 +1,5 @@
 const User = require("../models/User")
 const jwt = require("jsonwebtoken");
-const { tryCatch } = require("../utils/tryCatch");
-const customError = require("../utils/customError");
 
 const handleRefreshToken = async (req, res, next) => {
 
@@ -16,6 +14,8 @@ const handleRefreshToken = async (req, res, next) => {
         console.log("No user found with the current refresh token.");
         const payload = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
         const hackedUser = await User.findOne({ _id: payload._id }).exec();
+
+        if (!hackedUser) return next("The user with this refresh token does not exist", null);
         // delete all authentication
         hackedUser.refreshToken = [];
 
@@ -25,9 +25,6 @@ const handleRefreshToken = async (req, res, next) => {
             res.clearCookie("jwt", { httpOnly: true, sameSite: "None" })
         }
         console.log("Refresh token cleared in cookies!");
-        // if jwt not verified
-        foundUser.refreshToken = [...newRefreshTokenArray];
-        await foundUser.save()
         next("Refresh token cleared!", null)
     }
 
@@ -37,22 +34,25 @@ const handleRefreshToken = async (req, res, next) => {
         console.log("User with the refresh token found!");
 
         // now we have a valid refresh token which is also present in database
-        const newTokenArray = foundUser.refreshToken.filter(token => token != refreshToken);
+        const newTokenArray = foundUser.refreshToken.filter(rt => rt !== refreshToken);
 
         jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, payload) => {
-
-            const user = await User.findById(payload._id);
-
+            
             if (err) {
                 // old one
-                user.refreshToken = [...newTokenArray]
-                await user.save();
+                console.log('Expired Refresh Token')
+                foundUser.refreshToken = [...newTokenArray];
+                await foundUser.save();
+            }
+
+            else if (err || foundUser._id.toString() !== payload._id) {
+                next("Forbidden!", null);
             }
 
 
             // generate new accessToken and refreshToken with valid payload
             console.log("Expired access token detected!");
-            const tokens = await user.generateAuthToken("30d", "10s");
+            const tokens = await foundUser.generateAuthToken("30d", "10s");
             const accessToken = tokens.accessToken;
             const newRefreshToken = tokens.refreshToken;
 
@@ -66,18 +66,10 @@ const handleRefreshToken = async (req, res, next) => {
                 httpOnly: true,
             };
             res.cookie('jwt', newRefreshToken, options);
-
-
-            user.refreshToken = [...newTokenArray, newRefreshToken]
-            await user.save();
-
-
             req.user = payload;
             console.log("\nToken refreshed!\n");
             next(null, accessToken)
         });
-
-
     }
 }
 

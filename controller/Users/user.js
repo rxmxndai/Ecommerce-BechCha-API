@@ -16,12 +16,9 @@ const registerUser = tryCatch(async (req, res) => {
     if (duplicateUser.length)
         throw new customError("Duplicate Document Error", 403)
 
-
-    const result = JOIuserSchemaValidate(req.body);
-    const { error, value } = result;
-    const valid = error == null;
-
-    if (!valid) throw new customError("User Info validation failed", 400)
+    const {error, value}= await JOIuserSchemaValidate(req.body);
+    if (error)  throw new customError(`${error.details[0].message}`, 403);
+    
 
     const user = new User(value);
 
@@ -183,7 +180,7 @@ const deleteUser = tryCatch(async (req, res) => {
     const deletedUser = await User.findByIdAndDelete(req.user._id)
 
     if (!deletedUser) throw new customError("No USER record found", 404)
-
+    
     return res.status(200).json(deletedUser)
 })
 

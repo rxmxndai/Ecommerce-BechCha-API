@@ -36,7 +36,7 @@ const verifyToken = async (req, res, next) => {
             console.log("Access token expired!. Attempt for new token");
             await handleRefreshToken(req, res, async (err, token) => {
                 if (err) {
-                    return next(new customError("No accesstoken!", 400));
+                    return next(new customError(err, 400));
                 }
                 const payload = await JWTverify({token: token});
                 req.user = payload;
@@ -49,7 +49,6 @@ const verifyToken = async (req, res, next) => {
 const verifyTokenAndAuthorization = async (req, res, next) => {
 
     await verifyToken(req, res, async (err, response) => {
-        console.log("error aayo");
         if (err) return next(new customError(err , 400));
 
         const user = await User.findOne({ _id: req.user._id })
