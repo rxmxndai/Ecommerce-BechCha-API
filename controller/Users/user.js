@@ -33,6 +33,8 @@ const registerUser = tryCatch(async (req, res) => {
 const loginUser = tryCatch(async (req, res) => {
     const cookies = req.cookies;
 
+    if (!req.body.email || !req.body.password) throw new customError("Please fill in the credentials!", 400)
+    
     const user = await User.findOne({ email: req.body.email }).exec();
 
     if (!user) throw new customError("No user found", 404);
