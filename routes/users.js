@@ -38,7 +38,7 @@ router.delete("/logout/:id", verifyTokenAndAuthorization, logoutUser);
 
 
 // update user
-router.put("/:id", verifyTokenAndAuthorization, updateUser);
+router.patch("/:id", verifyTokenAndAuthorization, updateUser);
 
 
 // delete user

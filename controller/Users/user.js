@@ -4,7 +4,6 @@ const { decryptHashedPass, sendOTPverificationEmail } = require("../../utils/uti
 const tryCatch = require("../../utils/tryCatch");
 const OTPmodel = require("../../models/OTPverification");
 const { JOIuserSchemaValidate } = require("../../middlewares/JoiValidator")
-const multer = require("multer");
 const customError = require("../../utils/customError");
 
 
@@ -76,7 +75,7 @@ const loginUser = tryCatch(async (req, res) => {
             Date.now() + 30 * 24 * 60 * 60 * 1000
         ),
         httpOnly: true,
-        secure: true
+        // secure: true
     };
 
     res.cookie('jwt', newRefreshToken, options);
@@ -163,13 +162,19 @@ const logoutUser = tryCatch(async (req, res) => {
 
 const updateUser = tryCatch(async (req, res) => {
 
-    const user = await User.findByIdAndUpdate(
-        req.params.id,
-        {
-            $set: req.body,
-        },
-        { new: true }
-    )
+    const updates = Object.keys(req.body);
+
+    const allowedUpdates = ["username", "email", "password", "profile"]
+
+    const isValid = updates.every( update => allowedUpdates.includes(update))
+
+    if (!isValid) throw new customError("Cannot change some credentials!", 403);
+    
+   updates.forEach( update => {
+    req.user[update] = req.body[update];
+   })
+
+   const user = await req.user.save();
 
     return res.status(201).json(user);
 })
@@ -250,8 +255,13 @@ const getStatsUser = tryCatch(async (req, res) => {
 
 const uploadProfile = tryCatch( async (req, res) => {
     const userP = await User.findOne({_id: req.params.id})
+
+    if (!userP) throw new customError("Invalid request!", 403);
+    console.log(req.file.path);
     userP.profile = req.file.buffer
     const user = await userP.save();
+
+
     return res.status(200).json(user);
 })
 
