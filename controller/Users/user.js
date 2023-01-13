@@ -54,7 +54,7 @@ const loginUser = tryCatch(async (req, res) => {
 
         
     // create access token
-    const tokens = await user.generateAuthToken({rTexpiry: "30d", aTexpiry: "15m"});
+    const tokens = await user.generateAuthToken();
     const newRefreshToken = tokens.refreshToken;
     const accessToken = tokens.accessToken;
 
@@ -153,7 +153,11 @@ const logoutUser = tryCatch(async (req, res) => {
     foundUser.refreshToken = foundUser.refreshToken.filter(rt => rt !== refreshToken);;
     const result = await foundUser.save();
 
-    res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
+    res.clearCookie('jwt', { 
+                        httpOnly: true, 
+                        sameSite: 'None', 
+                        // secure: true 
+                    });
     return res.status(200).json(result);
 })
 

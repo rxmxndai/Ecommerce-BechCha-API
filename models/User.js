@@ -50,7 +50,7 @@ userSchema.methods.toJSON = function () {
 
 
 
-userSchema.methods.generateAuthToken = async function ( {rTexpiry, aTexpiry} )  {
+userSchema.methods.generateAuthToken = async function ( )  {
     const user = this
     
     if (!user) throw new Error("No user")
@@ -58,10 +58,11 @@ userSchema.methods.generateAuthToken = async function ( {rTexpiry, aTexpiry} )  
     const payload = {
         _id: user._id.toString(),
         isAdmin: user.isAdmin,
+        isVerified: user.isVerified,
     }
     
-    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: rTexpiry});
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: aTexpiry});
+    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "7d"});
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "60s"});
     
     user.refreshToken = [...user.refreshToken, refreshToken]
     

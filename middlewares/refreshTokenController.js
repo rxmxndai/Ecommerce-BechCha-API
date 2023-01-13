@@ -13,7 +13,6 @@ const handleRefreshToken = async (req, res, next) => {
 
     // user exist? with this refresh token
     const foundUser = await User.findOne({ refreshToken }).exec()
-    console.log(foundUser);
 
     // if the user with refresh token is not found // must be misuse of refresh token
     if (!foundUser) {
@@ -56,7 +55,7 @@ const handleRefreshToken = async (req, res, next) => {
 
             // generate new accessToken and refreshToken with valid payload
             console.log("Expired access token detected!");
-            const tokens = await foundUser.generateAuthToken({rTexpiry: "30d", aTexpiry: "15m"});
+            const tokens = await foundUser.generateAuthToken();
             const accessToken = tokens.accessToken;
             const newRefreshToken = tokens.refreshToken;
 
@@ -69,7 +68,7 @@ const handleRefreshToken = async (req, res, next) => {
                     Date.now() + 7 * 24 * 60 * 60 * 1000
                 ),
                 httpOnly: true,
-                secure: true
+                // secure: true
             };
             res.cookie('jwt', newRefreshToken, options);
             req.user = payload;

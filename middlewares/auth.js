@@ -43,17 +43,22 @@ const verifyToken = async (req, res, next) => {
 
 const verifyTokenAndAuthorization = async (req, res, next) => {
 
-    await verifyToken(req, res, async (err, response) => {
-        if (err) return next(err);
+    try {
+        await verifyToken(req, res, async (err, response) => {
+            if (err) return next(err);
 
-        const user = await User.findOne({ _id: req.user._id })
-        req.user = user;
-
-        // console.log(req.user._id, "\t", req.params.id);
-        if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
-            next();
-        }
-    })
+            const user = await User.findOne({ _id: req.user._id })
+            req.user = user;
+            
+            console.log(req.user._id.toString(), "\t", req.params.id);
+            if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
+                next();
+            }
+        })
+    }
+    catch (err) {
+        throw new customError(err, 401)
+    }
 }
 
 
@@ -67,6 +72,9 @@ const verifyTokenAndAdmin = (req, res, next) => {
 
         if (req.user.isAdmin) {
             next();
+        }
+        else {
+           return next(new customError("Need administrative privilage!", 403))
         }
     
     })
