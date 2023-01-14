@@ -1,5 +1,5 @@
 const User = require("../../models/User");
-
+const sharp = require("sharp")
 const { decryptHashedPass, sendOTPverificationEmail } = require("../../utils/utils");
 const tryCatch = require("../../utils/tryCatch");
 const OTPmodel = require("../../models/OTPverification");
@@ -258,6 +258,10 @@ const getStatsUser = tryCatch(async (req, res) => {
 
 
 const uploadProfile = tryCatch( async (req, res) => {
+
+
+    const buffer = await sharp(req.file.buffer).png().toBuffer();
+    
     const userP = await User.findOne({_id: req.params.id})
 
     if (!userP) throw new customError("Invalid request!", 403);
