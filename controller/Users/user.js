@@ -168,7 +168,7 @@ const updateUser = tryCatch(async (req, res) => {
 
     const updates = Object.keys(req.body);
 
-    const allowedUpdates = ["username", "email", "password", "profile"]
+    const allowedUpdates = ["username", "email", "password", "profile", "isAdmin"]
 
     const isValid = updates.every( update => allowedUpdates.includes(update))
 

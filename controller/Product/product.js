@@ -9,6 +9,7 @@ const addProduct = tryCatch(async (req, res) => {
     
     const {error, value}= await JOIproductSchemaValidate(req.body);
     
+    
 
     if (!mongoose.isValidObjectId(req.body.category)) throw new customError(`The category ID is invalid type!`, 400)
 
@@ -17,8 +18,8 @@ const addProduct = tryCatch(async (req, res) => {
 
     const product = new Product(value);
 
-    const savedProduct = await product.save();
-    return res.status(201).json(savedProduct);
+    // const savedProduct = await product.save();
+    return res.status(201).json(req.file);
 })
 
 
