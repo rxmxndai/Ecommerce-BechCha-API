@@ -10,10 +10,12 @@ const productSchema = new mongoose.Schema( {
             type: String, 
             required: true,
         },
-        img: {
-            type: Buffer, 
-            required: true,
-        }, 
+        images: [{
+            img: {
+                type: String, 
+                required: true,
+            }
+        }], 
         category: {
             type: mongoose.Schema.Types.ObjectId, 
             required: true,
@@ -30,7 +32,12 @@ const productSchema = new mongoose.Schema( {
             type: Number, 
             required: true,
         }, 
-
+        reviews: [
+            {
+                userId: mongoose.Schema.Types.ObjectId, ref: 'User',
+                review: String,
+            }
+        ]
     }, 
 
     { timestamps : true }
