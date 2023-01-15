@@ -1,6 +1,7 @@
 const Product = require("../models/Product");
 const Category  = require("../models/Category");
 const router = require("express").Router();
+const path = require("path")
 
 const multer = require("multer")
 const shortid = require("shortid")
@@ -12,7 +13,7 @@ const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts 
 
 const storage = multer.diskStorage({
     destination: function(req, file, callback) {
-        callback(null, "../products/")
+        callback(null, path.join(path.dirname(__dirname), "products"));
     },
     filename: function (req, file, callback) {
         callback(null, shortid.generate() + "-" + file.originalname)
