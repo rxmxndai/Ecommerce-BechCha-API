@@ -9,31 +9,30 @@ const addProduct = tryCatch(async (req, res) => {
 
 
 
-    const {title, description, category, price, createdBy} = req.body;
+    const {title, description, category, price, quantity} = req.body;
     let images = [];
-    if (req.file.length > 0 ) {
+    if (req.files.length > 0 ) {
         images = req.files.map(file => {
             return { img: file.filename }
         });
     }
+
+    const productValue = {
+        title,
+        description,
+        images,
+        category,
+        quantity,
+        price,
+        createdBy: req.user._id
+    }
     
-    // const {error, value}= await JOIproductSchemaValidate(req.body);
+    const {error, value}= await JOIproductSchemaValidate(productValue);
     
-    
-
-    // if (!mongoose.isValidObjectId(req.body.category)) throw new customError(`The category ID is invalid type!`, 400)
-
-    // if (error) throw new customError(`${error.details[0].message}`, 400)
+    if (error) throw new customError(`${error.details[0].message}`, 400)
 
 
-    const product = new Product({
-            title,
-            description,
-            images,
-            category,
-            price,
-            createdBy: req.user._id
-    });
+    const product = new Product(value);
 
     const savedProduct = await product.save();
 
