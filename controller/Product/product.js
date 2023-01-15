@@ -6,6 +6,10 @@ const customError = require("../../utils/customError");
 
 
 const addProduct = tryCatch(async (req, res) => {
+
+
+
+    const {title, description, images, category, price, createdBy} = req.body;
     
     // const {error, value}= await JOIproductSchemaValidate(req.body);
     
@@ -16,12 +20,14 @@ const addProduct = tryCatch(async (req, res) => {
     // if (error) throw new customError(`${error.details[0].message}`, 400)
 
 
-    // const product = new Product(value);
+    const product = new Product({
+        
+    });
 
     // const savedProduct = await product.save();
 
     return res.status(201).json({
-        file: req.file,
+        file: req.files,
         body: req.body
     });
 })

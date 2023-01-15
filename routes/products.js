@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
 const upload = multer({storage: storage})
 
 // add products
-router.post("/", verifyTokenAndAdmin, upload.single("prodImage"), addProduct)
+router.post("/", verifyTokenAndAdmin, upload.array("prodImage"), addProduct)
 
 
 // update prod
