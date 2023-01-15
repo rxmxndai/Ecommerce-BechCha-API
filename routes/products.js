@@ -1,13 +1,29 @@
 const Product = require("../models/Product");
 const Category  = require("../models/Category");
-
 const router = require("express").Router();
+
+const multer = require("multer")
+const shortid = require("shortid")
 const { verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { JOIproductSchemaValidate } = require("../middlewares/JoiValidator");
 const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts } = require("../controller/Product/product");
 
 
-router.post("/", verifyTokenAndAdmin, addProduct)
+
+const storage = multer.diskStorage({
+    destination: function(req, file, callback) {
+        callback(null, "../products/")
+    },
+    filename: function (req, file, callback) {
+        callback(null, shortid.generate() + "-" + file.originalname)
+    }
+})
+
+
+const upload = multer({storage})
+
+// add products
+router.post("/", verifyTokenAndAdmin, upload.single("prodImage"), addProduct)
 
 
 // update prod
