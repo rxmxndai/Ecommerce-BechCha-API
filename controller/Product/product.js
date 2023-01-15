@@ -9,7 +9,13 @@ const addProduct = tryCatch(async (req, res) => {
 
 
 
-    const {title, description, images, category, price, createdBy} = req.body;
+    const {title, description, category, price, createdBy} = req.body;
+    let images = [];
+    if (req.file.length > 0 ) {
+        images = req.files.map(file => {
+            return { img: file.filename }
+        });
+    }
     
     // const {error, value}= await JOIproductSchemaValidate(req.body);
     
@@ -21,14 +27,18 @@ const addProduct = tryCatch(async (req, res) => {
 
 
     const product = new Product({
-        
+            title,
+            description,
+            images,
+            category,
+            price,
+            createdBy: req.user._id
     });
 
-    // const savedProduct = await product.save();
+    const savedProduct = await product.save();
 
     return res.status(201).json({
-        file: req.files,
-        body: req.body
+       savedProduct
     });
 })
 
