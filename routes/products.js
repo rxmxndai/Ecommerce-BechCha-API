@@ -8,20 +8,33 @@ const shortid = require("shortid")
 const { verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { JOIproductSchemaValidate } = require("../middlewares/JoiValidator");
 const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts } = require("../controller/Product/product");
+const customError = require("../utils/customError");
 
 
 
-const storage = multer.diskStorage({
-    destination: function(req, file, callback) {
-        callback(null, path.join(path.dirname(__dirname), "products"));
+// const storage = multer.diskStorage({
+//     destination: function(req, file, callback) {
+//         callback(null, path.join(path.dirname(__dirname), "products"));
+//     },
+//     filename: function (req, file, callback) {
+//         callback(null, shortid.generate() + "-" + file.originalname)
+//     }
+// })
+
+
+const upload = multer({
+    limits: {
+        fileSize: 1000000
     },
-    filename: function (req, file, callback) {
-        callback(null, shortid.generate() + "-" + file.originalname)
+    fileFilter(req, file, callback) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|JPG|JPEG|PNG)$/)) {
+            return callback(new customError("File must be an Image.", 400));
+        }
+
+        callback(undefined, true);
     }
 })
 
-
-const upload = multer({storage: storage})
 
 // add products
 router.post("/", verifyTokenAndAdmin, upload.array("prodImage"), addProduct)

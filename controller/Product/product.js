@@ -2,6 +2,7 @@ const Product = require("../../models/Product");
 const { JOIproductSchemaValidate } = require("../../middlewares/JoiValidator");
 const tryCatch = require("../../utils/tryCatch");
 const customError = require("../../utils/customError");
+const sharp = require("sharp")
 
 
 
@@ -11,10 +12,14 @@ const addProduct = tryCatch(async (req, res) => {
     let images = [];
 
     if (req.files.length > 0 ) {
-        images = req.files.map(file => {
-            return { img: file.filename }
-        });
+        images = await Promise.all(req.files.map( async file => {
+                const buffer =  await sharp(file.buffer).png().toBuffer()
+                return { img: buffer }
+            })
+        );
     }
+
+    console.log(images);
 
     const productValue = {
         title,
