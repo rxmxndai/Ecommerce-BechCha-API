@@ -10,8 +10,6 @@ const addProduct = tryCatch(async (req, res) => {
     const {title, description, category, price, quantity} = req.body;
     let images = [];
 
-    console.log("Files: ", req.files);
-
     if (req.files.length > 0 ) {
         images = req.files.map(file => {
             return { img: file.filename }

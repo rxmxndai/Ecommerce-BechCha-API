@@ -260,16 +260,14 @@ const getStatsUser = tryCatch(async (req, res) => {
 const uploadProfile = tryCatch( async (req, res) => {
 
 
-    const buffer = await sharp(req.file.buffer).png().toBuffer();
+    const buffer =  await sharp(req.file.buffer).resize( {width: 250, height: 250} ).png().toBuffer()
     
     const userP = await User.findOne({_id: req.params.id})
 
     if (!userP) throw new customError("Invalid request!", 403);
-    console.log(req.file.path);
-    userP.profile = req.file.buffer
+
+    userP.profile = buffer;
     const user = await userP.save();
-
-
     return res.status(200).json(user);
 })
 
