@@ -7,10 +7,11 @@ const customError = require("../../utils/customError");
 
 const addProduct = tryCatch(async (req, res) => {
 
-
-
     const {title, description, category, price, quantity} = req.body;
     let images = [];
+
+    console.log("Files: ", req.files);
+
     if (req.files.length > 0 ) {
         images = req.files.map(file => {
             return { img: file.filename }
@@ -32,12 +33,12 @@ const addProduct = tryCatch(async (req, res) => {
     if (error) throw new customError(`${error.details[0].message}`, 400)
 
 
-    const product = new Product(value);
+    const saveProduct = new Product(value);
 
-    const savedProduct = await product.save();
+    const product = await saveProduct.save();
 
     return res.status(201).json({
-       savedProduct
+       product
     });
 })
 
