@@ -15,7 +15,6 @@ const addProduct = tryCatch(async (req, res) => {
 
     if (req.files.length > 0) {
         images = await Promise.all(req.files.map(async file => {
-            console.log(file.buffer);
             const buffer = await sharp(file.buffer).png().toBuffer()
             return buffer
         }));
@@ -35,12 +34,8 @@ const addProduct = tryCatch(async (req, res) => {
 
     if (error) throw new customError(`${error.details[0].message}`, 202)
 
-
     const saveProduct = new Product(value);
-
     const product = await saveProduct.save();
-    // const product = images
-
     return res.status(201).json({
         product
     });
@@ -86,9 +81,9 @@ const getOneProduct = tryCatch(async (req, res) => {
 
     if (!product) throw new Error("No record found")
 
-    res.set("Content-Type", "image/jpg")
-
-    return res.status(200).json(product.images[0])
+    // res.set("Content-Type", "image/png")
+    // const img = product.images[0]
+    return res.status(200).send(product)
 })
 
 
@@ -106,7 +101,6 @@ const getAllProducts = tryCatch(async (req, res) => {
     let queries = { inStock: true }
     let options = {}
 
-
     // pagination
     if (queryLimit && queryPage) {
         options.limit = queryLimit;
@@ -115,11 +109,7 @@ const getAllProducts = tryCatch(async (req, res) => {
 
     // categorical retrieve
     if (queryCategoryID) queries.category = queryCategoryID;
-
-
     if (querySort) options.sort = { [querySort]: -1 };
-
-
 
     // sort ({parameter: asc or desc})
     // limit => pagination (limit(how many))
