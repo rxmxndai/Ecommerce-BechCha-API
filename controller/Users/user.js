@@ -13,17 +13,23 @@ const registerUser = tryCatch(async (req, res) => {
     const duplicateUser = User.find({ email: req.body.email } || { username: req.body.username })
 
     if (duplicateUser.length)
-        throw new customError("Duplicate Document Error", 403)
+        throw new customError("Duplicate Document Error", 400)
 
     const { error, value } = await JOIuserSchemaValidate(req.body);
-    if (error) throw new customError(`${error.details[0].message}`, 403);
+    if (error) throw new customError(`${error.details[0].message}`, 400);
 
 
     const user = new User(value);
 
     await user.save();
-    // await sendOTPverificationEmail({id: user._id, email: user.email}, res)
-    return res.status(201).json(user);
+    await sendOTPverificationEmail({id: user._id, email: user.email}, res, (err, message) => {
+        if (err) throw new customError(err, 400)
+
+        else {
+            return res.status(201).json({user, message});
+        }
+    })
+    
 })
 
 
@@ -93,14 +99,7 @@ const loginUser = tryCatch(async (req, res) => {
 const verifyOTP = tryCatch(async (req, res) => {
 
     let { userId, otp } = req.body;
-
-
-    if (!userId || !otp) {
-        throw new customError("OTP not provided!", 204)
-    }
-
-    otp = otp.toString();
-
+    
     const userOTPrecord = await OTPmodel.findOne({ userId })
     const expiresAt = userOTPrecord?.expiresAt;
     const hashedOTP = userOTPrecord?.otp;
@@ -121,10 +120,11 @@ const verifyOTP = tryCatch(async (req, res) => {
     if (!validOTP) throw new customError("OTP's verification failed", 401)
 
     // for success
-    await User.updateOne({ _id: userId }, { isVerified: true })
+    const user = await User.updateOne({ _id: userId }, { isVerified: true })
     await OTPmodel.deleteMany({ userId: userId });
 
     return res.status(200).json({
+        user,
         status: "VERIFIED",
         msg: "User email has been verified"
     })
