@@ -92,7 +92,44 @@ const getOneProduct = tryCatch(async (req, res) => {
 
 
 
+// get all products
+const getAllProducts = tryCatch(async (req, res) => {
 
+    // query
+    const queryNew = req.query.new
+    const queryCategoryID = req.query.category
+    const querySort = req.query.sort
+    const queryLimit = parseInt(req.query.limit) || 20;
+    const queryPage = parseInt(req.query.page) || 1;
+
+    let queries = { inStock: true }
+    let options = {}
+
+
+    // pagination
+    if (queryLimit && queryPage) {
+        options.limit = queryLimit;
+        options.skip = (queryPage - 1) * queryLimit;
+    }
+
+    // categorical retrieve
+    if (queryCategoryID) queries.category = queryCategoryID;
+
+
+    if (querySort) options.sort = { [querySort]: -1 };
+
+
+
+    // sort ({parameter: asc or desc})
+    // limit => pagination (limit(how many))
+    let products;
+
+    products = await Product.find(queries, null, options);
+
+    if (!products) throw new Error("No record found")
+
+    return res.status(200).json(products)
+})
 
 
 
