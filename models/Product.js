@@ -14,10 +14,7 @@ const productSchema = new mongoose.Schema( {
             required: true,
             trim: true
         },
-        images: [{
-                type: Buffer, 
-                required: true,
-        }], 
+        images: [Buffer], 
         category: {
             type: mongoose.Schema.Types.ObjectId, 
             required: true,
@@ -52,6 +49,8 @@ const productSchema = new mongoose.Schema( {
 productSchema.methods.toJSON = function () {
     const product = this
     const productObject = product.toObject()
+
+
     return productObject
 }
 

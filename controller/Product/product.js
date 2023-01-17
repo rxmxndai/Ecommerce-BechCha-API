@@ -15,7 +15,7 @@ const addProduct = tryCatch(async (req, res) => {
 
     if (req.files.length > 0) {
         images = await Promise.all(req.files.map(async file => {
-            console.log(file);
+            console.log(file.buffer);
             const buffer = await sharp(file.buffer).png().toBuffer()
             return buffer
         }));
@@ -39,6 +39,7 @@ const addProduct = tryCatch(async (req, res) => {
     const saveProduct = new Product(value);
 
     const product = await saveProduct.save();
+    // const product = images
 
     return res.status(201).json({
         product
