@@ -15,9 +15,9 @@ const registerUser = tryCatch(async (req, res) => {
     if (duplicateUser.length)
         throw new customError("Duplicate Document Error", 403)
 
-    const {error, value}= await JOIuserSchemaValidate(req.body);
-    if (error)  throw new customError(`${error.details[0].message}`, 403);
-    
+    const { error, value } = await JOIuserSchemaValidate(req.body);
+    if (error) throw new customError(`${error.details[0].message}`, 403);
+
 
     const user = new User(value);
 
@@ -33,7 +33,7 @@ const loginUser = tryCatch(async (req, res) => {
     const cookies = req.cookies;
 
     if (!req.body.email || !req.body.password) throw new customError("Please fill in the credentials!", 400)
-    
+
     const user = await User.findOne({ email: req.body.email }).exec();
 
     if (!user) throw new customError("No user found", 404);
@@ -48,11 +48,11 @@ const loginUser = tryCatch(async (req, res) => {
     }
 
 
-    const newTokenArray = 
-        !cookies?.jwt ? user.refreshToken            
-        :user.refreshToken.filter(token => token != cookies.jwt);
+    const newTokenArray =
+        !cookies?.jwt ? user.refreshToken
+            : user.refreshToken.filter(token => token != cookies.jwt);
 
-        
+
     // create access token
     const tokens = await user.generateAuthToken();
     const newRefreshToken = tokens.refreshToken;
@@ -153,11 +153,11 @@ const logoutUser = tryCatch(async (req, res) => {
     foundUser.refreshToken = foundUser.refreshToken.filter(rt => rt !== refreshToken);;
     const result = await foundUser.save();
 
-    res.clearCookie('jwt', { 
-                        httpOnly: true, 
-                        sameSite: 'None', 
-                        // secure: true 
-                    });
+    res.clearCookie('jwt', {
+        httpOnly: true,
+        sameSite: 'None',
+        // secure: true 
+    });
     return res.status(200).json(result);
 })
 
@@ -166,19 +166,26 @@ const logoutUser = tryCatch(async (req, res) => {
 
 const updateUser = tryCatch(async (req, res) => {
 
+
+    console.log(req.file.buffer);
+    if (req.file) {
+        req.body.profile = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+    }
+
+
     const updates = Object.keys(req.body);
 
-    const allowedUpdates = ["username", "email", "password", "profile", "isAdmin"]
+    const allowedUpdates = ["username", "email", "password", "profile", "isAdmin", "profile"]
 
-    const isValid = updates.every( update => allowedUpdates.includes(update))
+    const isValid = updates.every(update => allowedUpdates.includes(update))
 
     if (!isValid) throw new customError("Cannot change some credentials!", 403);
-    
-   updates.forEach( update => {
-    req.user[update] = req.body[update];
-   })
 
-   const user = await req.user.save();
+    updates.forEach(update => {
+        req.user[update] = req.body[update];
+    })
+
+    const user = await req.user.save();
 
     return res.status(201).json(user);
 })
@@ -191,7 +198,7 @@ const deleteUser = tryCatch(async (req, res) => {
     const deletedUser = await User.findByIdAndDelete(req.user._id)
 
     if (!deletedUser) throw new customError("No USER record found", 404)
-    
+
     return res.status(200).json(deletedUser)
 })
 
@@ -255,14 +262,19 @@ const getStatsUser = tryCatch(async (req, res) => {
 
 
 
+/* TEST MULTER PIC UPLOADS AND RETREIVAL */
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
+const uploadProfile = tryCatch(async (req, res) => {
 
 
-const uploadProfile = tryCatch( async (req, res) => {
+    const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
 
-
-    const buffer =  await sharp(req.file.buffer).resize( {width: 250, height: 250} ).png().toBuffer()
-    
-    const userP = await User.findOne({_id: req.params.id})
+    const userP = await User.findOne({ _id: req.params.id })
 
     if (!userP) throw new customError("Invalid request!", 403);
 
@@ -276,8 +288,8 @@ const uploadProfile = tryCatch( async (req, res) => {
 
 
 const deleteProfile = tryCatch(async (req, res) => {
-    
-    const userP = await User.findOne({_id: req.params.id})
+
+    const userP = await User.findOne({ _id: req.params.id })
 
     userP.profile = undefined;
 
@@ -291,13 +303,13 @@ const deleteProfile = tryCatch(async (req, res) => {
 
 
 const getProfile = tryCatch(async (req, res) => {
-        const user = await User.findById(req.params.id)
-        if (!user || !user.profile) {
-            throw new customError("User has no profile", 404)
-        }
+    const user = await User.findById(req.params.id)
+    if (!user.profile) {
+        throw new customError("User has no profile", 404)
+    }
 
-        res.set("Content-Type", "image/jpg")
-        res.send(user.profile)
+    res.set("Content-Type", "image/jpg")
+    res.send(user.profile)
 })
 
 

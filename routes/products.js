@@ -30,7 +30,7 @@ router.put( "/:id", verifyTokenAndAdmin, updateProduct)
 router.delete("/:id", verifyTokenAndAdmin, deleteProduct)
 
 // get particular product
-router.get("/find/:id", getOneProduct)
+router.get("/:id", getOneProduct)
 
 // get all products
 router.get("/", getAllProducts)

@@ -15,10 +15,8 @@ const productSchema = new mongoose.Schema( {
             trim: true
         },
         images: [{
-            img: {
                 type: Buffer, 
                 required: true,
-            }
         }], 
         category: {
             type: mongoose.Schema.Types.ObjectId, 
@@ -48,5 +46,14 @@ const productSchema = new mongoose.Schema( {
 
     { timestamps : true }
 );
+
+
+
+productSchema.methods.toJSON = function () {
+    const product = this
+    const productObject = product.toObject()
+    return productObject
+}
+
 
 module.exports = mongoose.model('Product', productSchema);
