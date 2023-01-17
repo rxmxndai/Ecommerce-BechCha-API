@@ -6,6 +6,8 @@ const sharp = require("sharp")
 
 
 
+
+// adding new products
 const addProduct = tryCatch(async (req, res) => {
 
     const {title, description, category, price, quantity} = req.body;
@@ -46,7 +48,9 @@ const addProduct = tryCatch(async (req, res) => {
 })
 
 
-// update prod
+
+
+// update product
 const updateProduct = tryCatch(async (req, res) => {
 
     try {
@@ -66,6 +70,9 @@ const updateProduct = tryCatch(async (req, res) => {
 })
 
 
+
+
+// delete product
 const deleteProduct = tryCatch(async (req, res, next) => {
 
     try {
@@ -98,6 +105,8 @@ const getOneProduct = tryCatch(async (req, res) => {
         res.status(500).json(err.message)
     }
 })
+
+
 
 // get all products
 const getAllProducts = tryCatch(async (req, res) => {
