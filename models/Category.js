@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const { default: slugify } = require("slugify")
 
 const categorySchema = new mongoose.Schema({
     name: {
@@ -22,13 +23,14 @@ const categorySchema = new mongoose.Schema({
 )
 
 
-
-categorySchema.virtual('Product', {
-    ref: "Product",
-    localField: "_id",
-    foreignField: "category"
+categorySchema.pre("save", async function (next) {
+    const category = this
+    if (category.isModified("name")) {
+        console.log('changed');
+        category.slug = slugify(category.name)
+    }
+    next()
 })
 
-
-
-module.exports = mongoose.model('Category', categorySchema);
+const Category = mongoose.model('Category', categorySchema);
+module.exports = Category

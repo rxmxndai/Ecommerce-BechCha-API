@@ -38,8 +38,6 @@ const registerUser = tryCatch(async (req, res) => {
 const loginUser = tryCatch(async (req, res) => {
     const cookies = req.cookies;
 
-    if (!req.body.email || !req.body.password) throw new customError("Please fill in the credentials!", 400)
-
     const user = await User.findOne({ email: req.body.email }).exec();
 
     if (!user) throw new customError("No user found", 404);
@@ -52,6 +50,8 @@ const loginUser = tryCatch(async (req, res) => {
     if (!validPass) {
         throw new customError("No user found", 404);
     }
+
+    if (!user.isVerified) throw new customError("Please verify OTP through email", 400)
 
 
     const newTokenArray =
@@ -81,7 +81,7 @@ const loginUser = tryCatch(async (req, res) => {
             Date.now() + 30 * 24 * 60 * 60 * 1000
         ),
         httpOnly: true,
-        // secure: true
+        secure: true
     };
 
     res.cookie('jwt', newRefreshToken, options);
@@ -156,7 +156,7 @@ const logoutUser = tryCatch(async (req, res) => {
     res.clearCookie('jwt', {
         httpOnly: true,
         sameSite: 'None',
-        // secure: true 
+        secure: true 
     });
     return res.status(200).json(result);
 })
@@ -165,9 +165,6 @@ const logoutUser = tryCatch(async (req, res) => {
 
 
 const updateUser = tryCatch(async (req, res) => {
-
-
-    console.log(req.file.buffer);
     if (req.file) {
         req.body.profile = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
     }
@@ -189,8 +186,6 @@ const updateUser = tryCatch(async (req, res) => {
 
     return res.status(201).json(user);
 })
-
-
 
 
 

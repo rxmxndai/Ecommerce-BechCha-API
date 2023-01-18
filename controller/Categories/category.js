@@ -3,6 +3,7 @@ const tryCatch = require("../../utils/tryCatch");
 const slugify = require("slugify");
 const customError = require("../../utils/customError");
 const { default: mongoose } = require("mongoose");
+const sharp = require("sharp");
 
 
 const createCategories = (categories, parentId = null) => {
@@ -30,21 +31,18 @@ const createCategories = (categories, parentId = null) => {
 }
 
 
-const categoryExist = tryCatch(async ({catID}) => {
-    return await Category.findById({_id: catID})
-})
-
-
 const addCategory = tryCatch(async (req, res) => {
+
     const payload = {
         name: req.body.name,
-        slug: slugify(req.body.name)
+        slug: slugify(req.body.name),
+        image: req.file.buffer
     }
 
 
     if (req.body.parentId) {
-        if (!mongoose.isValidObjectId(req.body.parentId)) throw new customError("Not a valid parentID!", 400);
-        await Category.findById( req.body.parentId )
+        // if (!mongoose.isValidObjectId(req.body.parentId)) throw new customError("Not a valid parentID!", 400);
+        await Category.findById(req.body.parentId)
         payload.parentId = req.body.parentId;
     }
 
@@ -54,6 +52,33 @@ const addCategory = tryCatch(async (req, res) => {
     return res.status(201).json({ category: cat });
 })
 
+
+const updateCategory = tryCatch(async (req, res) => {
+
+    const categoryId = req.params.id;
+
+    const categoryP = await Category.findById(categoryId)
+
+    if (req.file) {
+        req.body.image = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+    }
+
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ["parentId", "name", "image"]
+    
+    const isValid = updates.every(update => allowedUpdates.includes(update))
+    
+    if (!isValid) throw new customError("Cannot change some credentials!", 403);
+
+    updates.forEach(update => {
+        categoryP[update] = req.body[update];
+    })
+    
+    const category = await categoryP.save();
+
+    return res.status(201).json(category);
+
+})
 
 
 const deleteCategory = tryCatch(async (req, res) => {
@@ -88,6 +113,7 @@ const getAllCategories = tryCatch(async (req, res) => {
 
 module.exports = {
     addCategory,
+    updateCategory,
     deleteCategory,
     getAllCategories
 }

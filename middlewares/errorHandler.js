@@ -8,7 +8,7 @@ const errorHandler = async (err, req, res, next) => {
   if (err.code === 11000) {
     const key = Object.keys(err.keyValue)[0];
     const value = Object.values(err.keyValue)[0];
-    const message = `The value [${key} = ${value}] already exists!`;
+    const message = `The ${key} ${value} already exists!`;
     err = new customError(message, 400);
   }
   
