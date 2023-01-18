@@ -22,6 +22,7 @@ const createCategories = (categories, parentId = null) => {
             _id: each._id,
             name: each.name,
             slug: each.slug,
+            image: each.image,
             // recursive calls for children with same data as parent Cat
             children: createCategories(categories, each._id)
         })
@@ -29,6 +30,8 @@ const createCategories = (categories, parentId = null) => {
 
     return CategoriesList;
 }
+
+
 
 
 const addCategory = tryCatch(async (req, res) => {
@@ -51,6 +54,8 @@ const addCategory = tryCatch(async (req, res) => {
     await cat.save();
     return res.status(201).json({ category: cat });
 })
+
+
 
 
 const updateCategory = tryCatch(async (req, res) => {
@@ -81,6 +86,8 @@ const updateCategory = tryCatch(async (req, res) => {
 })
 
 
+
+
 const deleteCategory = tryCatch(async (req, res) => {
 
     const categoryId = req.params.id;
@@ -92,6 +99,20 @@ const deleteCategory = tryCatch(async (req, res) => {
     return res.status(200).json({ ...deletedCat._doc });
 })
 
+
+
+
+const getImageCat = tryCatch(async (req, res) => {
+    const catId = req.params.id
+    
+    const cat = await Category.findById({_id: catId})
+    console.log(cat.image);
+
+    if (!cat.image) throw new customError("No image data found", 404)
+
+    res.set("Content-Type", "image/png")
+    return res.send(cat.image);
+})
 
 
 
@@ -114,6 +135,7 @@ const getAllCategories = tryCatch(async (req, res) => {
 module.exports = {
     addCategory,
     updateCategory,
+    getImageCat,
     deleteCategory,
     getAllCategories
 }

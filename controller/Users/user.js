@@ -293,10 +293,6 @@ const deleteProfile = tryCatch(async (req, res) => {
 })
 
 
-
-
-
-
 const getProfile = tryCatch(async (req, res) => {
     const user = await User.findById(req.params.id)
     if (!user.profile) {

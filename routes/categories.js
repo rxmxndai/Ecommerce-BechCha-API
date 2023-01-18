@@ -5,7 +5,8 @@ const {
     addCategory,
     updateCategory,
     getAllCategories,
-    deleteCategory
+    deleteCategory,
+    getImageCat
 } = require("../controller/Categories/category")
 const multer = require("multer")
 
@@ -33,6 +34,8 @@ router.patch("/:id", verifyTokenAndAdmin, upload.single("catImage"), updateCateg
 // get all categories
 router.get("/", getAllCategories)
 
+//get cat image
+router.get("/image/:id", getImageCat)
 
 // Delete a category
 router.delete("/:id", verifyTokenAndAdmin, deleteCategory)
