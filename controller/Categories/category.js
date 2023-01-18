@@ -22,7 +22,7 @@ const createCategories = (categories, parentId = null) => {
             _id: each._id,
             name: each.name,
             slug: each.slug,
-            image: each.image,
+            display: each.display,
             // recursive calls for children with same data as parent Cat
             children: createCategories(categories, each._id)
         })
@@ -39,7 +39,7 @@ const addCategory = tryCatch(async (req, res) => {
     const payload = {
         name: req.body.name,
         slug: slugify(req.body.name),
-        image: req.file.buffer
+        display: req.file.buffer
     }
 
 
@@ -65,11 +65,11 @@ const updateCategory = tryCatch(async (req, res) => {
     const categoryP = await Category.findById(categoryId)
 
     if (req.file) {
-        req.body.image = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+        req.body.display = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
     }
 
     const updates = Object.keys(req.body);
-    const allowedUpdates = ["parentId", "name", "image"]
+    const allowedUpdates = ["parentId", "name", "display"]
     
     const isValid = updates.every(update => allowedUpdates.includes(update))
     
@@ -106,12 +106,11 @@ const getImageCat = tryCatch(async (req, res) => {
     const catId = req.params.id
     
     const cat = await Category.findById({_id: catId})
-    console.log(cat.image);
 
-    if (!cat.image) throw new customError("No image data found", 404)
+    if (!cat.display) throw new customError("No image data found", 404)
 
     res.set("Content-Type", "image/png")
-    return res.send(cat.image);
+    return res.send(cat.display);
 })
 
 
