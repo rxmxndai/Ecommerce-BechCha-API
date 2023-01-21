@@ -81,9 +81,7 @@ const getOneProduct = tryCatch(async (req, res) => {
 
     if (!product) throw new Error("No record found")
 
-    // res.set("Content-Type", "image/png")
-    // const img = product.images[0]
-    return res.status(200).send(product)
+    return res.status(200).json(product)
 })
 
 

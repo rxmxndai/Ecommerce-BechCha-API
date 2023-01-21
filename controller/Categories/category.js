@@ -65,7 +65,7 @@ const updateCategory = tryCatch(async (req, res) => {
     const categoryP = await Category.findById(categoryId)
 
     if (req.file) {
-        req.body.display = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+        req.body.display = await sharp(req.file.buffer).resize({ width: 1440, height: 1080 }).png().toBuffer()
     }
 
     const updates = Object.keys(req.body);
@@ -102,15 +102,14 @@ const deleteCategory = tryCatch(async (req, res) => {
 
 
 
-const getImageCat = tryCatch(async (req, res) => {
+const getOneCategory = tryCatch(async (req, res) => {
     const catId = req.params.id
     
-    const cat = await Category.findById({_id: catId})
+    const category = await Category.findOne({_id: catId})
 
-    if (!cat.display) throw new customError("No image data found", 404)
+    if (!category) throw new customError("No category data found", 404)
 
-    res.set("Content-Type", "image/png")
-    return res.send(cat.display);
+    return res.status(200).json({category})
 })
 
 
@@ -134,7 +133,7 @@ const getAllCategories = tryCatch(async (req, res) => {
 module.exports = {
     addCategory,
     updateCategory,
-    getImageCat,
+    getOneCategory,
     deleteCategory,
     getAllCategories
 }
