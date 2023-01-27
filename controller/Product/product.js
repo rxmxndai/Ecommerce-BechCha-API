@@ -117,7 +117,7 @@ const getAllProducts = tryCatch(async (req, res) => {
 
     if (!products) throw new Error("No record found")
 
-    return res.status(200).json(products)
+    return res.status(200).json({products})
 })
 
 
