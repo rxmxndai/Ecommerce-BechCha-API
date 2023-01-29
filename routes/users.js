@@ -9,10 +9,7 @@ const {
     deleteUser,
     getOneUser,
     getAllUser, 
-    getStatsUser,
-    uploadProfile,
-    getProfile,
-    deleteProfile
+    getStatsUser
 } = require("../controller/Users/user")
 
 const multer = require("multer");
@@ -69,19 +66,6 @@ router.get("/find", verifyTokenAndAdmin, getAllUser)
 // get user stats
 
 router.get("/stats", verifyTokenAndAdmin, getStatsUser)
-
-
-// upload profile pic
-router.post("/profile/:id", verifyTokenAndAuthorization, upload.single("upload"), uploadProfile)
-
-
-// delete profile pic
-router.delete("/profile/:id", verifyTokenAndAuthorization, deleteProfile);
-
-
-// get one profile pic
-router.get("/profile/:id", verifyTokenAndAuthorization, getProfile);
-
 
 
 module.exports = router

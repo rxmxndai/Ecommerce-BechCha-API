@@ -46,16 +46,43 @@ const addProduct = tryCatch(async (req, res) => {
 
 // update product
 const updateProduct = tryCatch(async (req, res) => {
+    const prodID = req.params.id
+    console.log(prodID);
+    if (!prodID) return res.status(400).json({message: "No product selected!"})
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-        req.params.id,
-        {
-            $set: req.body,
-        },
-        { new: true }
-    )
-    console.log("Product added!");
-    return res.status(201).json(updatedProduct);
+    const allowedUpdates = ["title", "description", "category", "specification", "price", "quantity"];
+    const updatesSent = Object.keys(req.body);
+
+    const isValid = updatesSent.every(update => allowedUpdates.includes(update))
+
+    if (!isValid) throw new customError("Some fields cannot be changed!", 400);
+
+
+    
+    let images = [];
+    const { title, description, category, price, quantity } = req.body;
+
+    if (req.files.length > 0) {
+        images = await Promise.all(req.files.map(async file => {
+            const buffer = await sharp(file.buffer).png().toBuffer()
+            return buffer;
+        }))
+    }
+
+    const value = {
+        title,
+        description,
+        images,
+        category,
+        quantity,
+        price,
+        createdBy: req.user._id
+    }
+
+    const product = await Product.findByIdAndUpdate(prodID, value);
+    return res.status(201).json({
+        product
+    });
 })
 
 
@@ -90,7 +117,6 @@ const getOneProduct = tryCatch(async (req, res) => {
 const getAllProducts = tryCatch(async (req, res) => {
 
     // query
-    const queryNew = req.query.new
     const queryCategoryID = req.query.category
     const querySort = req.query.sort
     const queryLimit = parseInt(req.query.limit) || 20;

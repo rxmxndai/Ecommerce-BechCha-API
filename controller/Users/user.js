@@ -66,7 +66,8 @@ const loginUser = tryCatch(async (req, res) => {
 
 
     if (cookies?.jwt) {
-        res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true })
+        res.clearCookie("jwt", { httpOnly: true, sameSite: "None" })
+        // secure: true
     }
 
     user.refreshToken = [...newTokenArray, newRefreshToken]
@@ -81,7 +82,7 @@ const loginUser = tryCatch(async (req, res) => {
             Date.now() + 30 * 24 * 60 * 60 * 1000
         ),
         httpOnly: true,
-        secure: true
+        // secure: true
     };
 
     res.cookie('jwt', newRefreshToken, options);
@@ -257,54 +258,6 @@ const getStatsUser = tryCatch(async (req, res) => {
 
 
 
-/* TEST MULTER PIC UPLOADS AND RETREIVAL */
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
-
-const uploadProfile = tryCatch(async (req, res) => {
-
-
-    const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
-
-    const userP = await User.findOne({ _id: req.params.id })
-
-    if (!userP) throw new customError("Invalid request!", 403);
-
-    userP.profile = buffer;
-    const user = await userP.save();
-    return res.status(200).json(user);
-})
-
-
-
-
-
-const deleteProfile = tryCatch(async (req, res) => {
-
-    const userP = await User.findOne({ _id: req.params.id })
-
-    userP.profile = undefined;
-
-    const user = await userP.save();
-    return res.status(202).json(user);
-})
-
-
-const getProfile = tryCatch(async (req, res) => {
-    const user = await User.findById(req.params.id)
-    if (!user.profile) {
-        throw new customError("User has no profile", 404)
-    }
-
-    res.set("Content-Type", "image/jpg")
-    res.send(user.profile)
-})
-
-
-
 
 
 module.exports = {
@@ -316,8 +269,5 @@ module.exports = {
     deleteUser,
     getOneUser,
     getAllUser,
-    getStatsUser,
-    uploadProfile,
-    getProfile,
-    deleteProfile
+    getStatsUser
 }

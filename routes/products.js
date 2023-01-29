@@ -22,9 +22,8 @@ const upload = multer({
 // add products
 router.post("/", verifyTokenAndAdmin, upload.array("prodImage"), addProduct)
 
-
 // update prod
-router.put( "/:id", verifyTokenAndAdmin, updateProduct)
+router.put( "/:id", verifyTokenAndAdmin, upload.array("prodImage"), updateProduct)
 
 // delete product
 router.delete("/:id", verifyTokenAndAdmin, deleteProduct)
