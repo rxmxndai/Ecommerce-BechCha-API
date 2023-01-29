@@ -47,7 +47,6 @@ const addProduct = tryCatch(async (req, res) => {
 // update product
 const updateProduct = tryCatch(async (req, res) => {
     const prodID = req.params.id
-    console.log(prodID);
     if (!prodID) return res.status(400).json({message: "No product selected!"})
 
     const allowedUpdates = ["title", "description", "category", "specification", "price", "quantity"];
@@ -67,6 +66,10 @@ const updateProduct = tryCatch(async (req, res) => {
             const buffer = await sharp(file.buffer).png().toBuffer()
             return buffer;
         }))
+    }
+    else {
+        const prod = await Product.findById(prodID);
+        images = prod.images;
     }
 
     const value = {
@@ -119,11 +122,17 @@ const getAllProducts = tryCatch(async (req, res) => {
     // query
     const queryCategoryID = req.query.category
     const querySort = req.query.sort
+    const limitPrice = parseInt(req.query.limitprice)
     const queryLimit = parseInt(req.query.limit) || 20;
     const queryPage = parseInt(req.query.page) || 1;
 
-    let queries = { inStock: true }
+    let queries = { }
     let options = {}
+
+    //sort by price limit 
+    if (limitPrice) {
+        queries.price = {$lte: limitPrice} ;
+    }
 
     // pagination
     if (queryLimit && queryPage) {
@@ -133,13 +142,24 @@ const getAllProducts = tryCatch(async (req, res) => {
 
     // categorical retrieve
     if (queryCategoryID) queries.category = queryCategoryID;
-    if (querySort) options.sort = { [querySort]: -1 };
+
+    // sort by price order
+    if (querySort) {
+        console.log(querySort);
+        if (querySort === "asc") {
+            options.sort = {price: 1};
+        }
+        else if (querySort === "desc"){
+            options.sort = {price: -1};
+        }
+    }
+
+    
 
     // sort ({parameter: asc or desc})
     // limit => pagination (limit(how many))
-    let products;
-
-    products = await Product.find(queries, null, options);
+    // console.log(options, queries);
+    let products = await Product.find(queries, null, options);
 
     if (!products) throw new Error("No record found")
 
