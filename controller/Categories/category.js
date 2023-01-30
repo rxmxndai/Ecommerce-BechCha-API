@@ -2,7 +2,6 @@ const Category = require("../../models/Category")
 const tryCatch = require("../../utils/tryCatch");
 const slugify = require("slugify");
 const customError = require("../../utils/customError");
-const { default: mongoose } = require("mongoose");
 const sharp = require("sharp");
 
 
@@ -27,15 +26,9 @@ const createCategories = (categories, parentId = null) => {
             children: createCategories(categories, each._id)
         })
     }
-
     return CategoriesList;
 }
 
-
-const getChildren = tryCatch( async (category) => {
-    const categoryList = await Category.find({parentId: category._id})
-    return categoryList
-})
 
 
 
@@ -104,20 +97,12 @@ const deleteCategory = tryCatch(async (req, res) => {
 })
 
 
-
-
 const getOneCategory = tryCatch(async (req, res) => {
     const catId = req.params.id
-    
-    const category = await Category.findOne({_id: catId})
-
+    const category = await Category.findOne( { _id: catId })
     if (!category) throw new customError("No category data found", 404)
-
-    const CategoryList = getChildren(category);
-
-    category.children = CategoryList
-
-    return res.status(200).json({category})
+    const children = await Category.find({parentId: catId})
+    return res.status(200).json( { category, children })
 })
 
 

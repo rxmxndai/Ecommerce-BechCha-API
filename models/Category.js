@@ -13,18 +13,23 @@ const categorySchema = new mongoose.Schema({
         unique: true
     },
     parentId: {
-        type: String
+        type: mongoose.Types.ObjectId
     },
     display: Buffer
 } , 
     { timestamps: true }
 )
 
+categorySchema.methods.toJSON = function () {
+    const category = this
+    const catObject = category.toObject();
+    catObject.display = Array.from(new Uint8Array(category.display), byte => String.fromCharCode(byte)).join("");
+    return catObject;
+}
 
 categorySchema.pre("save", async function (next) {
     const category = this
     if (category.isModified("name")) {
-        console.log('changed');
         category.slug = slugify(category.name)
     }
     next()
