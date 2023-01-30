@@ -39,12 +39,11 @@ const addCategory = tryCatch(async (req, res) => {
     const payload = {
         name: req.body.name,
         slug: slugify(req.body.name),
-        display: req.file.buffer
+        display: await sharp(req.file.buffer).resize({ width: 1920, height: 1080 }).png().toBuffer()
     }
 
 
     if (req.body.parentId) {
-        // if (!mongoose.isValidObjectId(req.body.parentId)) throw new customError("Not a valid parentID!", 400);
         await Category.findById(req.body.parentId)
         payload.parentId = req.body.parentId;
     }
@@ -65,7 +64,7 @@ const updateCategory = tryCatch(async (req, res) => {
     const categoryP = await Category.findById(categoryId)
 
     if (req.file) {
-        req.body.display = await sharp(req.file.buffer).resize({ width: 1440, height: 1080 }).png().toBuffer()
+        req.body.display = await sharp(req.file.buffer).resize({ width: 1920, height: 1080 }).png().toBuffer()
     }
 
     const updates = Object.keys(req.body);
