@@ -32,6 +32,11 @@ const createCategories = (categories, parentId = null) => {
 }
 
 
+const getChildren = tryCatch( async (category) => {
+    const categoryList = await Category.find({parentId: category._id})
+    return categoryList
+})
+
 
 
 const addCategory = tryCatch(async (req, res) => {
@@ -107,6 +112,10 @@ const getOneCategory = tryCatch(async (req, res) => {
     const category = await Category.findOne({_id: catId})
 
     if (!category) throw new customError("No category data found", 404)
+
+    const CategoryList = getChildren(category);
+
+    category.children = CategoryList
 
     return res.status(200).json({category})
 })
