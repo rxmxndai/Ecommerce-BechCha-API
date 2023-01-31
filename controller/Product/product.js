@@ -145,7 +145,6 @@ const getAllProducts = tryCatch(async (req, res) => {
 
     // sort by price order
     if (querySort) {
-        console.log(querySort);
         if (querySort === "asc") {
             options.sort = {price: 1};
         }
