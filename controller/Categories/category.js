@@ -113,7 +113,8 @@ const getAllCategories = tryCatch(async (req, res) => {
 
     if (!categories) throw new customError("No categories exist!", 500);
 
-    const CategoryList = createCategories(categories);
+    let CategoryList = categories.filter(cat => !cat.parentId);
+    // CategoryList = createCategories(categories);
 
     return res.status(200).json({
         CategoryList

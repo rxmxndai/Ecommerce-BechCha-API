@@ -10,11 +10,6 @@ const customError = require("../../utils/customError");
 
 const registerUser = tryCatch(async (req, res) => {
     // empty body?
-    const duplicateUser = User.find({ email: req.body.email } || { username: req.body.username })
-
-    if (duplicateUser.length)
-        throw new customError("Duplicate Document Error", 400)
-
     const { error, value } = await JOIuserSchemaValidate(req.body);
     if (error) throw new customError(`${error.details[0].message}`, 400);
 
