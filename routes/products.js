@@ -7,7 +7,7 @@ const customError = require("../utils/customError");
 
 const upload = multer({
     limits: {
-        fileSize: 1000000
+        fileSize: 10000000
     },
     fileFilter(req, file, callback) {
         if (!file.originalname.match(/\.(jpg|jpeg|png|JPG|JPEG|PNG)$/)) {
@@ -20,7 +20,8 @@ const upload = multer({
 
 
 // add products
-router.post("/", verifyTokenAndAdmin, upload.array("prodImage"), addProduct)
+// router.post("/", verifyTokenAndAdmin, upload.array("prodImage"), addProduct)
+router.post("/", upload.array("prodImage"), addProduct)
 
 // update prod
 router.put( "/:id", verifyTokenAndAdmin, upload.array("prodImage"), updateProduct)

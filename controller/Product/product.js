@@ -9,7 +9,6 @@ const sharp = require("sharp")
 
 // adding new products
 const addProduct = tryCatch(async (req, res) => {
-
     const { title, description, category, price, quantity } = req.body;
     let images = [];
 
@@ -27,7 +26,7 @@ const addProduct = tryCatch(async (req, res) => {
         category,
         quantity,
         price,
-        createdBy: req.user._id
+        // createdBy: req.user._id
     }
 
     const { error, value } = await JOIproductSchemaValidate(productValue);
