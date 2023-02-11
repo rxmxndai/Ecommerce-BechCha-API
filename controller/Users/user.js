@@ -17,7 +17,7 @@ const registerUser = tryCatch(async (req, res) => {
     const user = new User(value);
 
     await user.save();
-    await sendOTPverificationEmail({id: user._id, email: user.email}, res, (err, message) => {
+    await sendOTPverificationEmail({ email: user.email}, res, (err, message) => {
         if (err) throw new customError(err, 400)
 
         else {
@@ -94,16 +94,16 @@ const loginUser = tryCatch(async (req, res) => {
 
 const verifyOTP = tryCatch(async (req, res) => {
 
-    let { userId, otp } = req.body;
+    let { email, otp } = req.body;
     
-    const userOTPrecord = await OTPmodel.findOne({ userId })
+    const userOTPrecord = await OTPmodel.findOne({ email })
     const expiresAt = userOTPrecord?.expiresAt;
     const hashedOTP = userOTPrecord?.otp;
 
 
     // otp expired?
     if (expiresAt < Date.now()) {
-        await OTPmodel.deleteMany({ userId: userId });
+        await OTPmodel.deleteMany({ email });
         throw new customError("OTP's verification time has expired. Please request for new one.", 401)
     }
 
@@ -116,8 +116,8 @@ const verifyOTP = tryCatch(async (req, res) => {
     if (!validOTP) throw new customError("OTP's verification failed", 401)
 
     // for success
-    const user = await User.updateOne({ _id: userId }, { isVerified: true })
-    await OTPmodel.deleteMany({ userId: userId });
+    const user = await User.updateOne({ email }, { isVerified: true })
+    await OTPmodel.deleteMany({ email });
 
     return res.status(200).json({
         user,

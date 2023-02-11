@@ -101,7 +101,8 @@ const getOneCategory = tryCatch(async (req, res) => {
     const catId = req.params.id
     const category = await Category.findOne( { _id: catId })
     if (!category) throw new customError("No category data found", 404)
-    const children = await Category.find({parentId: catId})
+    let children = await Category.find({parentId: catId})
+
     return res.status(200).json( { category, children })
 })
 

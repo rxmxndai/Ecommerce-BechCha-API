@@ -30,7 +30,7 @@ const decryptHashedPass = async ({ password, hashedPassword }) => {
 }
 
 
-const sendOTPverificationEmail = tryCatch(async ({ id, email }, res, next) => {
+const sendOTPverificationEmail = tryCatch(async ({ email }, res, next) => {
     let OTP = `${Math.floor(1000 + Math.random() * 9000)}`;
     OTP = OTP.toString();
     // mail options
@@ -49,22 +49,20 @@ const sendOTPverificationEmail = tryCatch(async ({ id, email }, res, next) => {
 
 
     // hash the otp
-    console.log(OTP);
     const hashedOTP = await hashPass(OTP)
     const newOTPverification = new OTPmodel({
-        userId: id,
+        email,
         otp: hashedOTP,
         createdAt: Date.now(),
         expiresAt: Date.now() + 600000 // 10 min in milliseconds
     })
-
-
     // otp record save in db
     await newOTPverification.save();
-    console.log("OTP SENT");
+
+    console.log(OTP);
+    
     // send verification mail
     const result = await transporter.sendMail(mailOptions);
-
 
     if (!result) next("Could not send Email", undefined);
 
@@ -73,7 +71,6 @@ const sendOTPverificationEmail = tryCatch(async ({ id, email }, res, next) => {
         status: "PENDING",
         MESSAGE: `Verification OTP sent to ${email}`,
         data: {
-            userId: id,
             email
         }
     })

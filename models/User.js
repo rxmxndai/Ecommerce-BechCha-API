@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema( {
         profile: {
             type: Buffer
         },
+        dob: {
+            type: String,
+            required: true,
+        },
         refreshToken: [String]
     }, 
 
