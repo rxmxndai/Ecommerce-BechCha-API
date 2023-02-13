@@ -2,10 +2,9 @@ const Product = require("../../models/Product");
 const { JOIproductSchemaValidate } = require("../../middlewares/JoiValidator");
 const tryCatch = require("../../utils/tryCatch");
 const customError = require("../../utils/customError");
-const sharp = require("sharp")
 const { getDataUri } = require("../../utils/dataURI")
 const cloudinary = require("cloudinary").v2;
-
+const Category = require("../../models/Category")
 
 
 
@@ -141,12 +140,14 @@ const getOneProduct = tryCatch(async (req, res) => {
 
 // get all products
 const getAllProducts = tryCatch(async (req, res) => {
+
+    let products;
     // query
-    const queryCategoryID = req.query.category
     const querySort = req.query.sort
     const limitPrice = parseInt(req.query.limitprice)
     const queryLimit = parseInt(req.query.limit) || 20;
     const queryPage = parseInt(req.query.page) || 1;
+    const subIds = req.query.subIds;
 
     let queries = { }
     let options = {}
@@ -156,14 +157,17 @@ const getAllProducts = tryCatch(async (req, res) => {
         queries.price = {$lte: limitPrice} ;
     }
 
+    // categorical retrieve
+    if (subIds) {
+        const childrenCats = subIds.split(",");
+        queries.category = { $in: childrenCats};
+    }
+
     // pagination
     if (queryLimit && queryPage) {
         options.limit = queryLimit;
         options.skip = (queryPage - 1) * queryLimit;
     }
-
-    // categorical retrieve
-    if (queryCategoryID) queries.category = queryCategoryID;
 
     // sort by price order
     if (querySort) {
@@ -175,14 +179,12 @@ const getAllProducts = tryCatch(async (req, res) => {
         }
     }
 
-    
-
     // sort ({parameter: asc or desc})
     // limit => pagination (limit(how many))
     // console.log(options, queries);
-    let products = await Product.find(queries, null, options);
+    products = await Product.find(queries, null, options);
 
-    if (!products) throw new Error("No record found")
+    if (!products) throw new customError("No record found", 404);
 
     return res.status(200).json({products})
 })

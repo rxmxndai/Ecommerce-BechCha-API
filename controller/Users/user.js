@@ -1,5 +1,4 @@
 const User = require("../../models/User");
-const sharp = require("sharp")
 const { decryptHashedPass, sendOTPverificationEmail } = require("../../utils/utils");
 const tryCatch = require("../../utils/tryCatch");
 const OTPmodel = require("../../models/OTPverification");

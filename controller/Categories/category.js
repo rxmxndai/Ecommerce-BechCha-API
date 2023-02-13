@@ -2,7 +2,6 @@ const Category = require("../../models/Category")
 const tryCatch = require("../../utils/tryCatch");
 const slugify = require("slugify");
 const customError = require("../../utils/customError");
-const sharp = require("sharp");
 const { getDataUri } = require("../../utils/dataURI");
 const cloudinary = require("cloudinary").v2;
 
@@ -122,6 +121,7 @@ const getOneCategory = tryCatch(async (req, res) => {
     const catId = req.params.id
     const category = await Category.findOne( { _id: catId })
     if (!category) throw new customError("No category data found", 404)
+
     let children = await Category.find({parentId: catId})
 
     return res.status(200).json( { category, children })
