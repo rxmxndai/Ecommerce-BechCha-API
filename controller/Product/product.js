@@ -117,7 +117,6 @@ const getOneProduct = tryCatch(async (req, res) => {
 
 // get all products
 const getAllProducts = tryCatch(async (req, res) => {
-
     // query
     const queryCategoryID = req.query.category
     const querySort = req.query.sort

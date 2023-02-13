@@ -2,13 +2,27 @@ const User = require("../models/User")
 const jwt = require("jsonwebtoken");
 const customError = require("../utils/customError");
 
+
+
+// set refresh token in cookie
+const cookieOptions = {
+    sameSite: "None",
+    expires: new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+    secure: true
+};
+
+
+
 const handleRefreshToken = async (req, res, next) => {
 
     const cookies = req.cookies;
     const refreshToken = cookies.jwt;
 
     if (!refreshToken) {
-        return next(new customError("No refresh token detected in cookies! please login again." , 400));
+        return next(new customError("No refresh token detected in cookies! please login again.", 400));
     }
 
     // user exist? with this refresh token
@@ -26,7 +40,7 @@ const handleRefreshToken = async (req, res, next) => {
 
         await hackedUser.save();
         if (cookies?.jwt) {
-            res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true})
+            res.clearCookie("jwt", cookieOptions)
         }
         next(new customError("Refresh token cleared!", 200))
     }
@@ -40,7 +54,7 @@ const handleRefreshToken = async (req, res, next) => {
         const newTokenArray = foundUser.refreshToken.filter(rt => rt !== refreshToken);
 
         jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, payload) => {
-            
+
             if (err) {
                 // old one
                 console.log('Expired Refresh Token')
@@ -62,15 +76,7 @@ const handleRefreshToken = async (req, res, next) => {
             foundUser.refreshToken = [...newTokenArray, newRefreshToken]
             await foundUser.save();
             // set refresh token in cookie
-            const options = {
-                sameSite: "None",
-                expires: new Date(
-                    Date.now() + 7 * 24 * 60 * 60 * 1000
-                ),
-                httpOnly: true,
-                // secure: true
-            };
-            res.cookie('jwt', newRefreshToken, options);
+            res.cookie('jwt', newRefreshToken, cookieOptions);
             req.user = payload;
             console.log("\nToken refreshed!\n");
             next(null, accessToken)
@@ -81,7 +87,8 @@ const handleRefreshToken = async (req, res, next) => {
 
 
 module.exports = {
-    handleRefreshToken
+    handleRefreshToken,
+    cookieOptions
 }
 
 

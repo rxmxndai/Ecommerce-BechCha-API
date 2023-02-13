@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const { hashPass } = require("../utils/utils");
 const jwt = require("jsonwebtoken");
-const { ref } = require("joi");
 
 const userSchema = new mongoose.Schema( {
         username: {
@@ -33,6 +32,17 @@ const userSchema = new mongoose.Schema( {
             type: String,
             required: true,
         },
+        address: {
+            type: String,
+        },
+        contacts: {
+            type: Number,
+            validate: {
+                validator: function (value) {
+                    return /\d{10}/.test(value);
+                }
+            }
+        },
         refreshToken: [String]
     }, 
 
@@ -47,7 +57,6 @@ userSchema.methods.toJSON = function () {
 
     delete userObject.password
     delete userObject.refreshToken
-    delete userObject.profile
 
     return userObject
 }
@@ -65,8 +74,8 @@ userSchema.methods.generateAuthToken = async function ( )  {
         isVerified: user.isVerified,
     }
     
-    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "7d"});
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "60s"});
+    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "30d"});
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "7d"});
     
     user.refreshToken = [...user.refreshToken, refreshToken]
     

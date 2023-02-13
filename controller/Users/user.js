@@ -5,6 +5,7 @@ const tryCatch = require("../../utils/tryCatch");
 const OTPmodel = require("../../models/OTPverification");
 const { JOIuserSchemaValidate } = require("../../middlewares/JoiValidator")
 const customError = require("../../utils/customError");
+const { cookieOptions } = require("../../middlewares/refreshTokenController");
 
 
 
@@ -61,31 +62,17 @@ const loginUser = tryCatch(async (req, res) => {
 
 
     if (cookies?.jwt) {
-        res.clearCookie("jwt", { httpOnly: true, sameSite: "None" })
-        // secure: true
+        res.clearCookie("jwt", cookieOptions)
     }
 
     user.refreshToken = [...newTokenArray, newRefreshToken]
     await user.save();
 
 
+    res.cookie('jwt', newRefreshToken, cookieOptions);
 
-    // set refresh token in cookie
-    const options = {
-        sameSite: "None",
-        expires: new Date(
-            Date.now() + 30 * 24 * 60 * 60 * 1000
-        ),
-        httpOnly: true,
-        // secure: true
-    };
+    const { refreshToken, password, ...rest } = user._doc;
 
-    res.cookie('jwt', newRefreshToken, options);
-
-    user.refreshToken = [...newTokenArray, newRefreshToken]
-    await user.save();
-
-    const { refreshToken, password, profile, ...rest } = user._doc;
     // send authorization roles and access token to user
     return res.status(200).json({ ...rest, accessToken });
 });
@@ -161,25 +148,31 @@ const logoutUser = tryCatch(async (req, res) => {
 
 
 const updateUser = tryCatch(async (req, res) => {
-    if (req.file) {
-        req.body.profile = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
-    }
 
+    const id = req.params.id;
+
+    if (req.file) {
+        console.log("File detected!");
+        req.body.profile = await sharp(req.file.buffer).resize({ width: 500, height: 500 }).png().toBuffer()
+    }
 
     const updates = Object.keys(req.body);
 
-    const allowedUpdates = ["username", "email", "password", "profile", "isAdmin", "profile"]
+    const allowedUpdates = ["username", "email", "password", "profile", "isAdmin", "address", "contacts"]
 
     const isValid = updates.every(update => allowedUpdates.includes(update))
 
+    
+
     if (!isValid) throw new customError("Cannot change some credentials!", 403);
 
+    const oldUser = await User.findById(id);
+
     updates.forEach(update => {
-        req.user[update] = req.body[update];
+        oldUser[update] = req.body[update];
     })
 
-    const user = await req.user.save();
-
+    const user = await oldUser.save();
     return res.status(201).json(user);
 })
 

@@ -19,6 +19,7 @@ const verifyToken = async (req, res, next) => {
     const authHeaders = req.headers['authorization']
     let accessToken = authHeaders?.split(" ")[1];
 
+    // console.log("AT from verifyToken: ", authHeaders);
 
     try {
         const payload = await JWTverify({ token: accessToken })
@@ -50,7 +51,7 @@ const verifyTokenAndAuthorization = async (req, res, next) => {
             const user = await User.findOne({ _id: req.user._id })
             req.user = user;
             
-            console.log(req.user._id.toString(), "\t", req.params.id);
+            // console.log(req.user._id.toString(), "\t", req.params.id);
             if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
                 next();
             }
