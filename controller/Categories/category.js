@@ -3,7 +3,8 @@ const tryCatch = require("../../utils/tryCatch");
 const slugify = require("slugify");
 const customError = require("../../utils/customError");
 const sharp = require("sharp");
-
+const { getDataUri } = require("../../utils/dataURI");
+const cloudinary = require("cloudinary").v2;
 
 const createCategories = (categories, parentId = null) => {
     let CategoriesList = [];
@@ -36,8 +37,7 @@ const addCategory = tryCatch(async (req, res) => {
 
     const payload = {
         name: req.body.name,
-        slug: slugify(req.body.name),
-        display: await sharp(req.file.buffer).resize({ width: 1920, height: 1080 }).png().toBuffer()
+        slug: slugify(req.body.name)
     }
 
 
@@ -46,9 +46,20 @@ const addCategory = tryCatch(async (req, res) => {
         payload.parentId = req.body.parentId;
     }
 
-    const cat = new Category(payload);
+    const category = new Category(payload);
 
-    await cat.save();
+    const file = req?.file;
+    if (file) {
+        const fileURI = file && getDataUri(file);
+        const myCloud = await cloudinary.uploader.upload(fileURI.content)
+        category.image = {
+            public_id: myCloud.public_id,
+            url: myCloud.url,
+        }
+    }
+
+    const cat = await category.save();
+
     return res.status(201).json({ category: cat });
 })
 
@@ -58,19 +69,27 @@ const addCategory = tryCatch(async (req, res) => {
 const updateCategory = tryCatch(async (req, res) => {
 
     const categoryId = req.params.id;
-
-    const categoryP = await Category.findById(categoryId)
-
-    if (req.file) {
-        req.body.display = await sharp(req.file.buffer).resize({ width: 1920, height: 1080 }).png().toBuffer()
-    }
-
     const updates = Object.keys(req.body);
-    const allowedUpdates = ["parentId", "name", "display"]
+    const allowedUpdates = ["parentId", "name", "image"]
     
     const isValid = updates.every(update => allowedUpdates.includes(update))
     
     if (!isValid) throw new customError("Cannot change some credentials!", 403);
+
+
+    const categoryP = await Category.findById(categoryId)
+
+    const file = req?.file;
+    if (file) {
+        const fileURI = getDataUri(file);
+        const myCloud = await cloudinary.uploader.upload(fileURI.content)
+
+        await cloudinary.uploader.destroy(categoryP.image.public_id);
+        categoryP.image = {
+            public_id: myCloud.public_id,
+            url: myCloud.url,
+        }
+    }
 
     updates.forEach(update => {
         categoryP[update] = req.body[update];
@@ -93,6 +112,8 @@ const deleteCategory = tryCatch(async (req, res) => {
 
     const deletedCat = await Category.findByIdAndDelete({ _id: categoryId })
 
+    await cloudinary.uploader.destroy(deletedCat.image.public_id);
+
     return res.status(200).json({ ...deletedCat._doc });
 })
 
@@ -114,7 +135,7 @@ const getAllCategories = tryCatch(async (req, res) => {
 
     if (!categories) throw new customError("No categories exist!", 500);
 
-    let CategoryList = categories.filter(cat => !cat.parentId);
+    let CategoryList = categories;
     // CategoryList = createCategories(categories);
 
     return res.status(200).json({

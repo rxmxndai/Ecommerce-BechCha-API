@@ -14,7 +14,12 @@ const productSchema = new mongoose.Schema( {
             required: true,
             trim: true
         },
-        images: [Buffer], 
+        images: [
+            {
+              public_id: { type: String, required: true },
+              url: { type: String, required: true },
+            },
+        ],
         category: {
             type: mongoose.Schema.Types.ObjectId, 
             required: true,

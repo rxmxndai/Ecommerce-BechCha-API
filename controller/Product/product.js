@@ -3,6 +3,8 @@ const { JOIproductSchemaValidate } = require("../../middlewares/JoiValidator");
 const tryCatch = require("../../utils/tryCatch");
 const customError = require("../../utils/customError");
 const sharp = require("sharp")
+const { getDataUri } = require("../../utils/dataURI")
+const cloudinary = require("cloudinary").v2;
 
 
 
@@ -10,23 +12,14 @@ const sharp = require("sharp")
 // adding new products
 const addProduct = tryCatch(async (req, res) => {
     const { title, description, category, price, quantity } = req.body;
-    let images = [];
-
-    if (req.files.length > 0) {
-        images = await Promise.all(req.files.map(async file => {
-            const buffer = await sharp(file.buffer).png().toBuffer()
-            return buffer
-        }));
-    }
 
     const productValue = {
         title,
         description,
-        images,
         category,
         quantity,
         price,
-        // createdBy: req.user._id
+        createdBy: req.user._id
     }
 
     const { error, value } = await JOIproductSchemaValidate(productValue);
@@ -34,6 +27,21 @@ const addProduct = tryCatch(async (req, res) => {
     if (error) throw new customError(`${error.details[0].message}`, 202)
 
     const saveProduct = new Product(value);
+    const files = req?.files;
+    if (files) {
+        let images = await Promise.all(
+            files.map(async (file) => {
+              const fileURI = getDataUri(file);
+              const myCloud = await cloudinary.uploader.upload(fileURI.content);
+              return {
+                public_id: myCloud.public_id,
+                url: myCloud.url,
+              };
+            })
+          );
+
+        saveProduct.images = images;
+    }
     const product = await saveProduct.save();
     return res.status(201).json({
         product
@@ -55,20 +63,33 @@ const updateProduct = tryCatch(async (req, res) => {
 
     if (!isValid) throw new customError("Some fields cannot be changed!", 400);
 
-
-    
-    let images = [];
     const { title, description, category, price, quantity } = req.body;
 
-    if (req.files.length > 0) {
-        images = await Promise.all(req.files.map(async file => {
-            const buffer = await sharp(file.buffer).png().toBuffer()
-            return buffer;
-        }))
+
+    const productP = await Product.findById(prodID);
+
+
+    const files = req?.files;
+    let images = [];
+    if (files) {
+
+        productP.images.map( async (image) => {
+            await cloudinary.uploader.destroy(image.public_id);
+        })
+        
+        images = await Promise.all(
+            files.map(async (file) => {
+              const fileURI = getDataUri(file);
+              const myCloud = await cloudinary.uploader.upload(fileURI.content);
+              return {
+                public_id: myCloud.public_id,
+                url: myCloud.url,
+              };
+            })
+          );
     }
     else {
-        const prod = await Product.findById(prodID);
-        images = prod.images;
+        images = productP.images;
     }
 
     const value = {
@@ -96,10 +117,13 @@ const deleteProduct = tryCatch(async (req, res, next) => {
 
     if (!deletedProduct) throw new Error("No record found")
 
+    deleteProduct.images?.map( async (image) => {
+        await cloudinary.uploader.destroy(image.public_id);
+    })
 
-    const { ...product } = deletedProduct._doc;
+    const product = deletedProduct._doc;
 
-    res.status(200).json({ ...product, msg: "Product deleted" })
+    res.status(200).json( product )
 })
 
 

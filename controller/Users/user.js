@@ -195,6 +195,8 @@ const updateUser = tryCatch(async (req, res) => {
 const deleteUser = tryCatch(async (req, res) => {
     const deletedUser = await User.findByIdAndDelete(req.user._id)
 
+    await cloudinary.uploader.destroy(deletedUser.image.public_id)
+
     if (!deletedUser) throw new customError("No USER record found", 404)
 
     return res.status(200).json(deletedUser)

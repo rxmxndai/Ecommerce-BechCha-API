@@ -26,10 +26,10 @@ const upload = multer({
 
 
 // add categories
-router.post("/add", verifyTokenAndAdmin, upload.single("catImage"), addCategory)
+router.post("/add", verifyTokenAndAdmin, upload.single("image"), addCategory)
 
 // update category
-router.patch("/:id", verifyTokenAndAdmin, upload.single("catImage"), updateCategory)
+router.patch("/:id", verifyTokenAndAdmin, upload.single("image"), updateCategory)
 
 // get all categories
 router.get("/", getAllCategories)

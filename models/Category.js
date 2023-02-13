@@ -15,7 +15,16 @@ const categorySchema = new mongoose.Schema({
     parentId: {
         type: mongoose.Types.ObjectId
     },
-    display: Buffer
+    image: {
+        public_id: {
+            type: String,
+            required: true,
+        },
+        url: {
+            type: String,
+            required: true,
+        }
+    }
 } , 
     { timestamps: true }
 )
@@ -23,7 +32,6 @@ const categorySchema = new mongoose.Schema({
 categorySchema.methods.toJSON = function () {
     const category = this
     const catObject = category.toObject();
-    catObject.display = Array.from(new Uint8Array(category.display), byte => String.fromCharCode(byte)).join("");
     return catObject;
 }
 

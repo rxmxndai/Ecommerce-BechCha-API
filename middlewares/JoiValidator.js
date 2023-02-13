@@ -33,7 +33,10 @@ const productSchema = Joi.object({
         description: Joi.string()
                 .max(1000)
                 .allow(''),
-        images: Joi.array().items(Joi.binary()).required().min(1).max(5),
+        images: Joi.array().items({
+                                public_id: Joi.string().required(),
+                                url: Joi.string()
+                        }),
         category: Joi.string()
                 .hex()
                 .required(),

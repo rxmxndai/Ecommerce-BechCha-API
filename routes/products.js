@@ -19,11 +19,11 @@ const upload = multer({
 })
 
 // add products
-// router.post("/", verifyTokenAndAdmin, upload.array("prodImage"), addProduct)
-router.post("/", upload.array("prodImage"), addProduct)
+router.post("/", verifyTokenAndAdmin, upload.array("images"), addProduct)
+// router.post("/", upload.array("images"), addProduct)
 
 // update prod
-router.put( "/:id", verifyTokenAndAdmin, upload.array("prodImage"), updateProduct)
+router.put( "/:id", verifyTokenAndAdmin, upload.array("images"), updateProduct)
 
 // delete product
 router.delete("/:id", verifyTokenAndAdmin, deleteProduct)
