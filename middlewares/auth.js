@@ -19,12 +19,13 @@ const verifyToken = async (req, res, next) => {
     const authHeaders = req.headers['authorization']
     let accessToken = authHeaders?.split(" ")[1];
 
+    if (!accessToken) return new customError("No access token detected. Login required!", 404)
+
     // console.log("AT from verifyToken: ", authHeaders);
 
     try {
         const payload = await JWTverify({ token: accessToken })
-        req.user = payload;
-        next(null, "ok");
+        next(null, payload);
     }
     catch (error) {
         if (error instanceof jwt.JsonWebTokenError) {
@@ -35,7 +36,6 @@ const verifyToken = async (req, res, next) => {
                 }
                 console.log("Access token refreshed!");
                 const payload = await JWTverify({token: token});
-                req.user = payload;
                 next(null, payload);
             });
         }
@@ -46,12 +46,13 @@ const verifyTokenAndAuthorization = async (req, res, next) => {
 
     try {
         await verifyToken(req, res, async (err, response) => {
-            if (err) return next(err);
+            if (err) throw new customError(err, 401)
+            const user = await User.findById( response._id )
 
-            const user = await User.findOne({ _id: req.user._id })
+            if (!user) throw new customError("No user data available!", 401)
             req.user = user;
-            
-            // console.log(req.user._id.toString(), "\t", req.params.id);
+            console.log(req.user);
+            console.log(req.user._id.toString(), "\t", req.params.id);
             if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
                 next();
             }

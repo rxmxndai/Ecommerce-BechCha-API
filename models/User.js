@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema( {
         profile: {
             type: Buffer
         },
+        image: {
+            public_id: String,
+            url: String,
+        },
         dob: {
             type: String,
             required: true,

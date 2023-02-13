@@ -1,8 +1,8 @@
 const router = require("express").Router();
-const multer = require("multer")
 const { verifyTokenAndAdmin }  = require("../middlewares/auth");
 const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts } = require("../controller/Product/product");
 const customError = require("../utils/customError");
+const multer = require("multer");
 
 
 const upload = multer({
@@ -17,7 +17,6 @@ const upload = multer({
         callback(undefined, true);
     }
 })
-
 
 // add products
 // router.post("/", verifyTokenAndAdmin, upload.array("prodImage"), addProduct)

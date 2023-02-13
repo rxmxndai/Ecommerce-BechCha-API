@@ -33,7 +33,7 @@ const upload = multer({
 
 
 // register user
-router.post("/register", registerUser);
+router.post("/register", upload.single("image"), registerUser);
 
 
 // verify OTP
@@ -50,7 +50,7 @@ router.delete("/logout/:id", verifyTokenAndAuthorization, logoutUser);
 
 
 // update user
-router.patch("/:id", verifyTokenAndAuthorization, upload.single("profile"), updateUser);
+router.patch("/:id", verifyTokenAndAuthorization, upload.single("image"), updateUser);
 
 
 // delete user

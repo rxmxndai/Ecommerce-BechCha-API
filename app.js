@@ -2,8 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv")
 dotenv.config();
 require('./database/mongoose')
-
-
+require("./middlewares/CloudinarySetup")
 const userRoute = require('./routes/users')
 const productRoute = require("./routes/products")
 const categoryRoute = require("./routes/categories")

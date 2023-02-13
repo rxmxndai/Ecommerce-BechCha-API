@@ -6,21 +6,31 @@ const OTPmodel = require("../../models/OTPverification");
 const { JOIuserSchemaValidate } = require("../../middlewares/JoiValidator")
 const customError = require("../../utils/customError");
 const { cookieOptions } = require("../../middlewares/refreshTokenController");
+const { getDataUri } = require("../../utils/dataURI");
+const cloudinary = require("cloudinary").v2;
 
 
 
 const registerUser = tryCatch(async (req, res) => {
-    // empty body?
+    const file = req?.file;
+    const fileURI = file && getDataUri(file);
+    
     const { error, value } = await JOIuserSchemaValidate(req.body);
     if (error) throw new customError(`${error.details[0].message}`, 400);
 
-
     const user = new User(value);
+
+    if (file) {
+        const myCloud = await cloudinary.uploader.upload(fileURI.content)
+        user.image = {
+            public_id: myCloud.public_id,
+            url: myCloud.url,
+        }
+    }
 
     await user.save();
     await sendOTPverificationEmail({ email: user.email}, res, (err, message) => {
         if (err) throw new customError(err, 400)
-
         else {
             return res.status(201).json({user, message});
         }
@@ -150,19 +160,12 @@ const logoutUser = tryCatch(async (req, res) => {
 const updateUser = tryCatch(async (req, res) => {
 
     const id = req.params.id;
-
-    if (req.file) {
-        console.log("File detected!");
-        req.body.profile = await sharp(req.file.buffer).resize({ width: 500, height: 500 }).png().toBuffer()
-    }
-
     const updates = Object.keys(req.body);
 
     const allowedUpdates = ["username", "email", "password", "profile", "isAdmin", "address", "contacts"]
 
     const isValid = updates.every(update => allowedUpdates.includes(update))
 
-    
 
     if (!isValid) throw new customError("Cannot change some credentials!", 403);
 
@@ -171,6 +174,17 @@ const updateUser = tryCatch(async (req, res) => {
     updates.forEach(update => {
         oldUser[update] = req.body[update];
     })
+
+    const file = req?.file;
+    if (file) {
+        const fileURI = file && getDataUri(file);
+        const myCloud = await cloudinary.uploader.upload(fileURI.content)
+        await cloudinary.uploader.destroy(oldUser.image.public_id)
+        oldUser.image = {
+            public_id: myCloud.public_id,
+            url: myCloud.url,
+        }
+    }
 
     const user = await oldUser.save();
     return res.status(201).json(user);
