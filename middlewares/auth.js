@@ -21,8 +21,6 @@ const verifyToken = async (req, res, next) => {
 
     if (!accessToken) return new customError("No access token detected. Login required!", 404)
 
-    // console.log("AT from verifyToken: ", authHeaders);
-
     try {
         const payload = await JWTverify({ token: accessToken })
         next(null, payload);

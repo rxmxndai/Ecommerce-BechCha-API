@@ -20,7 +20,7 @@ const customError = require("../utils/customError");
 // image upload using multer
 const upload = multer({
     limits: {
-        fileSize: 1000000 //1mb file size
+        fileSize: 2000000 //1mb file size
     },
     fileFilter(req, file, callback) {
 

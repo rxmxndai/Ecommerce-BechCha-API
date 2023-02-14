@@ -18,7 +18,6 @@ const registerUser = tryCatch(async (req, res) => {
     if (error) throw new customError(`${error.details[0].message}`, 400);
 
     const user = new User(value);
-
     if (file) {
         const myCloud = await cloudinary.uploader.upload(fileURI.content)
         user.image = {
@@ -27,14 +26,14 @@ const registerUser = tryCatch(async (req, res) => {
         }
     }
 
-    await user.save();
-    await sendOTPverificationEmail({ email: user.email}, res, (err, message) => {
-        if (err) throw new customError(err, 400)
+    
+    await sendOTPverificationEmail({ email: user.email}, res, (message, err) => {
+        if (err) return res.status(400).json({message: err})
         else {
             return res.status(201).json({user, message});
         }
     })
-    
+    await user.save();
 })
 
 
@@ -160,12 +159,9 @@ const updateUser = tryCatch(async (req, res) => {
 
     const id = req.params.id;
     const updates = Object.keys(req.body);
-
-    const allowedUpdates = ["username", "email", "password", "profile", "isAdmin", "address", "contacts"]
+    const allowedUpdates = ["username", "email", "password", "image", "isAdmin", "address", "contacts"]
 
     const isValid = updates.every(update => allowedUpdates.includes(update))
-
-
     if (!isValid) throw new customError("Cannot change some credentials!", 403);
 
     const oldUser = await User.findById(id);
@@ -174,18 +170,35 @@ const updateUser = tryCatch(async (req, res) => {
         oldUser[update] = req.body[update];
     })
 
+    let user;
+
     const file = req?.file;
     if (file) {
-        const fileURI = file && getDataUri(file);
-        const myCloud = await cloudinary.uploader.upload(fileURI.content)
-        await cloudinary.uploader.destroy(oldUser.image.public_id)
-        oldUser.image = {
-            public_id: myCloud.public_id,
-            url: myCloud.url,
-        }
-    }
+        try {
+           const fileURI = file && getDataUri(file);
+            const myCloud = await cloudinary.uploader.upload(fileURI.content)
 
-    const user = await oldUser.save();
+            
+            // Destroy the previous image if it exists
+            if (oldUser.image && oldUser.image.public_id) {
+                await cloudinary.uploader.destroy(oldUser.image.public_id);
+            }
+
+            oldUser.image = {
+                public_id: myCloud.public_id,
+                url: myCloud.url,
+            }
+            // Save the updates to the database
+           user =  await oldUser.save();
+        }
+        catch (er) {
+            console.log(er);
+        }
+    } else {
+        // Save the updates to the database if no file was uploaded
+        user = await oldUser.save();
+    }
+    
     return res.status(201).json(user);
 })
 

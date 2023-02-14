@@ -61,7 +61,12 @@ userSchema.methods.toJSON = function () {
 
     delete userObject.password
     delete userObject.refreshToken
-
+   if (userObject.image && userObject.image.url) {
+        userObject.image = userObject.image.url
+   }
+   else {
+    userObject.image = "";
+   }
     return userObject
 }
 
