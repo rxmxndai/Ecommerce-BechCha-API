@@ -61,16 +61,12 @@ const verifyTokenAndAuthorization = async (req, res, next) => {
 
 
 const verifyTokenAndAdmin = (req, res, next) => {
-
     verifyToken(req, res, async (err, response) => {
-        
         if (err) {
             return next(err, null);
         }
-
         const user = await User.findById( response._id )
         req.user = user;
-
         if (!req.user?.isAdmin) {
             return next(new customError("Need administrative privilage!", 403))
         }

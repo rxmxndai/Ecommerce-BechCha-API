@@ -4,6 +4,15 @@ const { startOfMonth, endOfMonth, subMonths } = require('date-fns');
 const customError = require("../../utils/customError");
 
 
+
+const now = new Date();
+const lastMonthStartDate = startOfMonth(subMonths(now, 1));
+const lastMonthEndDate = endOfMonth(subMonths(now, 1));
+const currentMonthStartDate = startOfMonth(now);
+const currentMonthEndDate = endOfMonth(now);
+
+
+
 const addOrder = tryCatch(async (req, res, next) => {
     const order = new Order(req.body)
     const savedOrder = await order.save();
@@ -55,13 +64,6 @@ const getAllOrders = tryCatch(async (req, res) => {
 
 
 const getSalesAnalytics = tryCatch( async (req, res) => {
-
-    const now = new Date();
-    const lastMonthStartDate = startOfMonth(subMonths(now, 1));
-    const lastMonthEndDate = endOfMonth(subMonths(now, 1));
-    const currentMonthStartDate = startOfMonth(now);
-    const currentMonthEndDate = endOfMonth(now);
-
     const SalesLastMonth = await Order.find({
         createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }, 
         status: "delivered",
@@ -80,11 +82,25 @@ const getSalesAnalytics = tryCatch( async (req, res) => {
 
     const totalSalesThisMonth = SalesThisMonth?.reduce((totalSales, order) => totalSales + order.totalAmount, 0);
     const totalSalesLastMonth = SalesLastMonth?.reduce((totalSales, order) => totalSales + order.totalAmount, 0);
-
-
     const result = [(totalSalesThisMonth - totalSalesLastMonth )/ totalSalesLastMonth ]* 100;
 
     return res.status(200).json({result, totalSalesLastMonth, totalSalesThisMonth})
+})
+
+
+
+
+const getOrdersAnalytics = tryCatch( async (req, res) => {
+    const OrdersLastMonth = await Order.countDocuments({
+        createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }
+    });
+
+    const OrdersThisMonth = await Order.countDocuments({
+        createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate }
+    });
+
+    const result = [(OrdersThisMonth - OrdersLastMonth) / OrdersLastMonth ] * 100;
+    return res.status(200).json({result, OrdersThisMonth, OrdersLastMonth})
 })
 
 module.exports = {
@@ -93,5 +109,6 @@ module.exports = {
     deleteOrder,
     getOneOrder,
     getAllOrders,
-    getSalesAnalytics
+    getSalesAnalytics,
+    getOrdersAnalytics
 }

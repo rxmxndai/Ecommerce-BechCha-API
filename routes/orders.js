@@ -1,4 +1,4 @@
-const { addOrder, deleteOrder, updateOrder, getAllOrders, getOneOrder, getSalesAnalytics } = require("../controller/Order/order");
+const { addOrder, deleteOrder, updateOrder, getAllOrders, getOneOrder, getSalesAnalytics, getOrdersAnalytics } = require("../controller/Order/order");
 const router = require("express").Router();
 const {  verifyTokenAndAdmin, verifyTokenAndAuthorization }  = require("../middlewares/auth");
 const multer = require('multer');
@@ -28,5 +28,9 @@ router.get("/", verifyTokenAndAdmin, getAllOrders);
 
 // get monthly income
 router.get("/sales/analytics", verifyTokenAndAdmin, getSalesAnalytics);
+
+
+// get monthly orders count
+router.get("/orders/analytics", verifyTokenAndAdmin, getOrdersAnalytics);
 
 module.exports = router
