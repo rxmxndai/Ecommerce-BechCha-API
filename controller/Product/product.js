@@ -4,7 +4,6 @@ const tryCatch = require("../../utils/tryCatch");
 const customError = require("../../utils/customError");
 const { getDataUri } = require("../../utils/dataURI")
 const cloudinary = require("cloudinary").v2;
-const Category = require("../../models/Category")
 
 
 

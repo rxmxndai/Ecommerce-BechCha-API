@@ -6,6 +6,7 @@ require("./middlewares/CloudinarySetup")
 const userRoute = require('./routes/users')
 const productRoute = require("./routes/products")
 const categoryRoute = require("./routes/categories")
+const orderRoute = require("./routes/orders")
 const errorHandler = require("./middlewares/errorHandler")
 
 var cookieParser = require('cookie-parser')
@@ -27,6 +28,7 @@ app.use(express.json());
 app.use("/api/users", userRoute);
 app.use("/api/categories", categoryRoute);
 app.use("/api/products", productRoute);
+app.use("/api/orders", orderRoute);
 app.use( errorHandler);
 
 
