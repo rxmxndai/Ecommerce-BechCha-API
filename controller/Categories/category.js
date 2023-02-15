@@ -21,7 +21,7 @@ const createCategories = (categories, parentId = null) => {
             _id: each._id,
             name: each.name,
             slug: each.slug,
-            display: each.display,
+            image: each.image.url,
             // recursive calls for children with same data as parent Cat
             children: createCategories(categories, each._id)
         })
@@ -135,8 +135,8 @@ const getAllCategories = tryCatch(async (req, res) => {
 
     if (!categories) throw new customError("No categories exist!", 500);
 
-    let CategoryList = categories;
-    // CategoryList = createCategories(categories);
+    let CategoryList;
+    CategoryList = createCategories(categories);
 
     return res.status(200).json({
         CategoryList

@@ -22,7 +22,7 @@ const handleRefreshToken = async (req, res, next) => {
     const refreshToken = cookies.jwt;
 
     if (!refreshToken) {
-        return next(new customError("No refresh token detected in cookies! please login again.", 400));
+        return next(new customError("No refresh token detected in cookies! please login again.", undefined));
     }
 
     // user exist? with this refresh token

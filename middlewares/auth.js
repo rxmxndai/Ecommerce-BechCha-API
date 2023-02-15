@@ -48,14 +48,14 @@ const verifyTokenAndAuthorization = async (req, res, next) => {
             const user = await User.findById( response._id )
             req.user = user;
             if (!user) throw new customError("No user data available!", 401)
-            console.log(req.user._id.toString(), "\t", req.params.id);
+            // console.log(req.user._id.toString(), "\t", req.params.id);
             if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
                 next();
             }
         })
     }
     catch (err) {
-        throw new customError(err, 401)
+       return res.status(500).json(err);
     }
 }
 
@@ -71,7 +71,7 @@ const verifyTokenAndAdmin = (req, res, next) => {
         const user = await User.findById( response._id )
         req.user = user;
 
-        if (!req.user.isAdmin) {
+        if (!req.user?.isAdmin) {
             return next(new customError("Need administrative privilage!", 403))
         }
         else {
