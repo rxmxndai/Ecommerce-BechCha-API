@@ -41,11 +41,6 @@ const userSchema = new mongoose.Schema( {
         },
         contacts: {
             type: Number,
-            validate: {
-                validator: function (value) {
-                    return /\d{10}/.test(value);
-                }
-            }
         },
         refreshToken: [String]
     }, 

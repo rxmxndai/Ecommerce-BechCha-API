@@ -263,9 +263,6 @@ const getStatsUser = tryCatch(async (req, res) => {
 })
 
 
-
-
-
 module.exports = {
     registerUser,
     loginUser,

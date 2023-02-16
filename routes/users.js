@@ -58,14 +58,13 @@ router.delete("/:id", verifyTokenAndAuthorization, deleteUser);
 
 
 // get particular user
-router.get("/find/:id", verifyTokenAndAdmin, getOneUser)
+router.get("/find/:id", verifyTokenAndAuthorization, getOneUser)
 
 // get all user
 router.get("/find", verifyTokenAndAdmin, getAllUser)
 
 
 // get user stats
-
 router.get("/stats", verifyTokenAndAdmin, getStatsUser)
 
 

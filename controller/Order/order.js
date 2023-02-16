@@ -2,6 +2,7 @@ const Order = require("../../models/Order");
 const tryCatch = require("../../utils/tryCatch");
 const { startOfMonth, endOfMonth, subMonths } = require('date-fns');
 const customError = require("../../utils/customError");
+const User = require("../../models/User");
 
 
 
@@ -11,7 +12,9 @@ const lastMonthEndDate = endOfMonth(subMonths(now, 1));
 const currentMonthStartDate = startOfMonth(now);
 const currentMonthEndDate = endOfMonth(now);
 
-
+const DifferenceInPerc = (a, b) => {
+    return result = [(a-b) / b] * 100;
+}
 
 const addOrder = tryCatch(async (req, res, next) => {
     const order = new Order(req.body)
@@ -82,7 +85,7 @@ const getSalesAnalytics = tryCatch( async (req, res) => {
 
     const totalSalesThisMonth = SalesThisMonth?.reduce((totalSales, order) => totalSales + order.totalAmount, 0);
     const totalSalesLastMonth = SalesLastMonth?.reduce((totalSales, order) => totalSales + order.totalAmount, 0);
-    const result = [(totalSalesThisMonth - totalSalesLastMonth )/ totalSalesLastMonth ]* 100;
+    const result = DifferenceInPerc(totalSalesThisMonth, totalSalesLastMonth);
 
     return res.status(200).json({result, totalSalesLastMonth, totalSalesThisMonth})
 })
@@ -91,16 +94,50 @@ const getSalesAnalytics = tryCatch( async (req, res) => {
 
 
 const getOrdersAnalytics = tryCatch( async (req, res) => {
-    const OrdersLastMonth = await Order.countDocuments({
+    const LastMonthCount = await Order.countDocuments({
         createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }
     });
 
-    const OrdersThisMonth = await Order.countDocuments({
+    const ThisMonthCount = await Order.countDocuments({
         createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate }
     });
 
-    const result = [(OrdersThisMonth - OrdersLastMonth) / OrdersLastMonth ] * 100;
-    return res.status(200).json({result, OrdersThisMonth, OrdersLastMonth})
+    const orderCountDifference = DifferenceInPerc(ThisMonthCount, LastMonthCount);
+
+    let orders = await Order.find({createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }});
+    const orderAmountNow = orders.reduce((value, ord) => {
+        return value + ord.totalAmount;
+    }, 0)
+    orders = await Order.find({createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate }});
+    const orderAmountPrev = orders.reduce((value, ord) => {
+        return value + ord.totalAmount;
+    }, 0)
+
+    const orderAmountDifference = DifferenceInPerc(orderAmountNow, orderAmountPrev);
+
+    return res.status(200).json({
+        orderCountDifference, 
+        ThisMonthCount, 
+        LastMonthCount, 
+        orderAmountNow, 
+        orderAmountPrev, 
+        orderAmountDifference
+    })
+})
+
+
+const getUserPercentage = tryCatch( async (req, res) => {
+    const LastMonthCount = await Order.countDocuments({
+        createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }
+    });
+
+    const ThisMonthCount = await Order.countDocuments({
+        createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate }
+    });
+
+    const userCountDifference = DifferenceInPerc(ThisMonthCount, LastMonthCount);
+
+    return res.status(200).json({LastMonthCount, ThisMonthCount, userCountDifference})
 })
 
 module.exports = {
@@ -110,5 +147,6 @@ module.exports = {
     getOneOrder,
     getAllOrders,
     getSalesAnalytics,
-    getOrdersAnalytics
+    getOrdersAnalytics,
+    getUserPercentage,
 }
