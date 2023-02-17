@@ -26,14 +26,15 @@ const registerUser = tryCatch(async (req, res) => {
         }
     }
 
-    
-    await sendOTPverificationEmail({ email: user.email}, res, (message, err) => {
-        if (err) return res.status(400).json({message: err})
-        else {
-            return res.status(201).json({user, message});
-        }
-    })
+    // await sendOTPverificationEmail({ userId: user._id, email: user.email}, res, (message, err) => {
+    //     if (err) return res.status(400).json({message: err})
+    //     else {
+    //         return res.status(201).json({user, message});
+    //     }
+    // })
     await user.save();
+
+    return res.status(201).json({user});
 })
 
 
@@ -84,16 +85,16 @@ const loginUser = tryCatch(async (req, res) => {
 
 const verifyOTP = tryCatch(async (req, res) => {
 
-    let { email, otp } = req.body;
-    
+    let { userId, email, otp } = req.body;
+
     const userOTPrecord = await OTPmodel.findOne({ email })
     const expiresAt = userOTPrecord?.expiresAt;
     const hashedOTP = userOTPrecord?.otp;
 
-
+    
     // otp expired?
     if (expiresAt < Date.now()) {
-        await OTPmodel.deleteMany({ email });
+        await OTPmodel.deleteMany({ email, userId});
         throw new customError("OTP's verification time has expired. Please request for new one.", 401)
     }
 
@@ -106,19 +107,33 @@ const verifyOTP = tryCatch(async (req, res) => {
     if (!validOTP) throw new customError("OTP's verification failed", 401)
 
     // for success
-    const user = await User.updateOne({ email }, { isVerified: true })
-    await OTPmodel.deleteMany({ email });
+    const user = await User.findByIdAndUpdate({ email, _id: userId }, { isVerified: true })
+    console.log(email);
+    await OTPmodel.deleteMany({ email, userId });
 
+    console.log(user);
     return res.status(200).json({
         user,
-        status: "VERIFIED",
-        msg: "User email has been verified"
+        message: "User email has been verified"
     })
-
-
 })
 
 
+const resendOTP = tryCatch( async (req, res) => {
+    let { userId, email } = req.body;
+
+    if (!userId || !email ) throw new customError("Empty user details!", 400);
+
+    await OTPmodel.deleteMany({userId});
+    
+    await sendOTPverificationEmail({ userId, email}, res, (message, err) => {
+        if (err) return res.status(400).json({message: err})
+        else {
+            return res.status(201).json({userId, email, message});
+        }
+    })
+
+})
 
 const logoutUser = tryCatch(async (req, res) => {
     // On client, also delete the accessToken
@@ -267,6 +282,7 @@ module.exports = {
     registerUser,
     loginUser,
     verifyOTP,
+    resendOTP,
     logoutUser,
     updateUser,
     deleteUser,

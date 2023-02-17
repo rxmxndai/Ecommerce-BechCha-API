@@ -9,7 +9,8 @@ const {
     deleteUser,
     getOneUser,
     getAllUser, 
-    getStatsUser
+    getStatsUser,
+    resendOTP
 } = require("../controller/Users/user")
 
 const multer = require("multer");
@@ -37,9 +38,10 @@ router.post("/register", upload.single("image"), registerUser);
 
 
 // verify OTP
-router.post("/verifyOTP", verifyOTP)
+router.post("/verifyOTP", verifyOTP);
 
-
+// resend OTP
+router.post("/resendOTP", resendOTP);
 
 // login user
 router.post("/login", loginUser);
@@ -58,14 +60,14 @@ router.delete("/:id", verifyTokenAndAuthorization, deleteUser);
 
 
 // get particular user
-router.get("/find/:id", verifyTokenAndAuthorization, getOneUser)
+router.get("/find/:id", verifyTokenAndAuthorization, getOneUser);
 
 // get all user
-router.get("/find", verifyTokenAndAdmin, getAllUser)
+router.get("/find", verifyTokenAndAdmin, getAllUser);
 
 
 // get user stats
-router.get("/stats", verifyTokenAndAdmin, getStatsUser)
+router.get("/stats", verifyTokenAndAdmin, getStatsUser);
 
 
 module.exports = router
