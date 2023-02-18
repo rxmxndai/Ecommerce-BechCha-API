@@ -26,13 +26,14 @@ const registerUser = tryCatch(async (req, res) => {
         }
     }
 
-    // await sendOTPverificationEmail({ userId: user._id, email: user.email}, res, (message, err) => {
-    //     if (err) return res.status(400).json({message: err})
-    //     else {
-    //         return res.status(201).json({user, message});
-    //     }
-    // })
     await user.save();
+
+    await sendOTPverificationEmail({ userId: user._id, email: user.email}, res, (message, err) => {
+        if (err) return res.status(400).json({message: err})
+        else {
+            return res.status(201).json({user, message});
+        }
+    })
 
     return res.status(201).json({user});
 })
@@ -110,8 +111,6 @@ const verifyOTP = tryCatch(async (req, res) => {
     const user = await User.findByIdAndUpdate({ email, _id: userId }, { isVerified: true })
     console.log(email);
     await OTPmodel.deleteMany({ email, userId });
-
-    console.log(user);
     return res.status(200).json({
         user,
         message: "User email has been verified"
