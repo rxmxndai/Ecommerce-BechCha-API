@@ -34,8 +34,6 @@ const registerUser = tryCatch(async (req, res) => {
             return res.status(201).json({user, message});
         }
     })
-
-    return res.status(201).json({user});
 })
 
 
@@ -86,16 +84,18 @@ const loginUser = tryCatch(async (req, res) => {
 
 const verifyOTP = tryCatch(async (req, res) => {
 
-    let { userId, email, otp } = req.body;
+    let { email, otp } = req.body;
 
     const userOTPrecord = await OTPmodel.findOne({ email })
+
+
     const expiresAt = userOTPrecord?.expiresAt;
     const hashedOTP = userOTPrecord?.otp;
 
     
     // otp expired?
     if (expiresAt < Date.now()) {
-        await OTPmodel.deleteMany({ email, userId});
+        await OTPmodel.deleteMany({ email });
         throw new customError("OTP's verification time has expired. Please request for new one.", 401)
     }
 
@@ -108,9 +108,10 @@ const verifyOTP = tryCatch(async (req, res) => {
     if (!validOTP) throw new customError("OTP's verification failed", 401)
 
     // for success
-    const user = await User.findByIdAndUpdate({ email, _id: userId }, { isVerified: true })
-    console.log(email);
-    await OTPmodel.deleteMany({ email, userId });
+    const user = await User.findOne({ email })
+    user.isVerified = true;
+    await user.save();
+    await OTPmodel.deleteMany({ email });
     return res.status(200).json({
         user,
         message: "User email has been verified"
@@ -119,16 +120,16 @@ const verifyOTP = tryCatch(async (req, res) => {
 
 
 const resendOTP = tryCatch( async (req, res) => {
-    let { userId, email } = req.body;
+    let { email } = req.body;
 
-    if (!userId || !email ) throw new customError("Empty user details!", 400);
+    if (!email ) throw new customError("Empty user details!", 400);
 
-    await OTPmodel.deleteMany({userId});
+    await OTPmodel.deleteMany({email});
     
-    await sendOTPverificationEmail({ userId, email}, res, (message, err) => {
+    await sendOTPverificationEmail({ email}, res, (message, err) => {
         if (err) return res.status(400).json({message: err})
         else {
-            return res.status(201).json({userId, email, message});
+            return res.status(201).json({ email, message});
         }
     })
 
@@ -210,10 +211,12 @@ const updateUser = tryCatch(async (req, res) => {
 
 
 const deleteUser = tryCatch(async (req, res) => {
-    const deletedUser = await User.findByIdAndDelete(req.user._id)
+    const deletedUser = await User.findByIdAndDelete(req.params.id)
 
-    await cloudinary.uploader.destroy(deletedUser.image.public_id)
-
+    if (deletedUser.image && deletedUser.image.public_id) {
+        await cloudinary.uploader.destroy(deletedUser.image.public_id)
+    }
+    
     if (!deletedUser) throw new customError("No USER record found", 404)
 
     return res.status(200).json(deletedUser)

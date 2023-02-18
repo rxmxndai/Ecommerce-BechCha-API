@@ -47,7 +47,7 @@ const verifyTokenAndAuthorization = async (req, res, next) => {
             if (err) throw new customError(err, 401)
             const user = await User.findById( response._id )
             req.user = user;
-            if (!user) throw new customError("No user data available!", 401)
+            if (!user) return res.status(403).json("No user data available!");
             // console.log(req.user._id.toString(), "\t", req.params.id);
             if (req.user._id.toString() === req.params.id || req.user.isAdmin) {
                 next();
