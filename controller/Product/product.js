@@ -9,6 +9,7 @@ const cloudinary = require("cloudinary").v2;
 
 // adding new products
 const addProduct = tryCatch(async (req, res) => {
+
     const { title, description, category, price, quantity } = req.body;
 
     const productValue = {
@@ -41,6 +42,7 @@ const addProduct = tryCatch(async (req, res) => {
         saveProduct.images = images;
     }
     const product = await saveProduct.save();
+
     return res.status(201).json({
         product
     });
@@ -63,44 +65,45 @@ const updateProduct = tryCatch(async (req, res) => {
 
     const { title, description, category, price, quantity } = req.body;
 
-
     const productP = await Product.findById(prodID);
 
+    updatesSent.forEach(update => {
+        productP[update] = req.body[update];
+    })
+
+    let product;
 
     const files = req?.files;
-    let images = [];
-    if (files) {
-
-        productP.images.map( async (image) => {
-            await cloudinary.uploader.destroy(image.public_id);
-        })
-        
-        images = await Promise.all(
-            files.map(async (file) => {
-              const fileURI = getDataUri(file);
-              const myCloud = await cloudinary.uploader.upload(fileURI.content);
-              return {
-                public_id: myCloud.public_id,
-                url: myCloud.url,
-              };
+    let images;
+    if (files.length > 0) {
+        try {
+            console.log(files.length);
+            productP.images.map( async (image) => {
+                await cloudinary.uploader.destroy(image.public_id);
             })
-          );
+            
+            productP.images = await Promise.all(
+                files.map(async (file) => {
+                  const fileURI = getDataUri(file);
+                  const myCloud = await cloudinary.uploader.upload(fileURI.content);
+                  return {
+                    public_id: myCloud.public_id,
+                    url: myCloud.url,
+                  };
+                })
+              );
+
+            product = await productP.save();
+        }
+        catch (err) {
+            console.log(err);
+        }
+
     }
     else {
-        images = productP.images;
+        product = await productP.save();
     }
 
-    const value = {
-        title,
-        description,
-        images,
-        category,
-        quantity,
-        price,
-        createdBy: req.user._id
-    }
-
-    const product = await Product.findByIdAndUpdate(prodID, value);
     return res.status(201).json({
         product
     });

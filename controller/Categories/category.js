@@ -130,13 +130,17 @@ const getOneCategory = tryCatch(async (req, res) => {
 
 
 const getAllCategories = tryCatch(async (req, res) => {
-
     const categories = await Category.find({}).exec()
 
     if (!categories) throw new customError("No categories exist!", 500);
 
     let CategoryList;
-    CategoryList = createCategories(categories);
+    if (req.query.child === "none") {
+        CategoryList = createCategories(categories);
+    }
+    else {
+        CategoryList = categories;
+    }
 
     return res.status(200).json({
         CategoryList
