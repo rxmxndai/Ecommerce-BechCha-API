@@ -63,8 +63,6 @@ const updateProduct = tryCatch(async (req, res) => {
 
     if (!isValid) throw new customError("Some fields cannot be changed!", 400);
 
-    const { title, description, category, price, quantity } = req.body;
-
     const productP = await Product.findById(prodID);
 
     updatesSent.forEach(update => {
@@ -74,7 +72,6 @@ const updateProduct = tryCatch(async (req, res) => {
     let product;
 
     const files = req?.files;
-    let images;
     if (files.length > 0) {
         try {
             console.log(files.length);
@@ -180,6 +177,8 @@ const getAllProducts = tryCatch(async (req, res) => {
             options.sort = {price: -1};
         }
     }
+
+    options.sort = { createdAt: -1 }
 
     // sort ({parameter: asc or desc})
     // limit => pagination (limit(how many))
