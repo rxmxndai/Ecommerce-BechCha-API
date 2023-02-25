@@ -130,7 +130,7 @@ const getOneCategory = tryCatch(async (req, res) => {
 
 
 const getAllCategories = tryCatch(async (req, res) => {
-    const categories = await Category.find({}).exec().sort({ createdAt: -1 })
+    const categories = await Category.find({}).sort({ createdAt: -1 }).exec()
 
     if (!categories) throw new customError("No categories exist!", 500);
 
