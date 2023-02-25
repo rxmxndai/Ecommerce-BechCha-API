@@ -68,7 +68,7 @@ const loginUser = tryCatch(async (req, res) => {
 
 
     if (cookies?.jwt) {
-        res.clearCookie("jwt", cookieOptions)
+        res.clearCookie("jwt")
     }
 
     user.refreshToken = [...newTokenArray, newRefreshToken]
@@ -77,7 +77,7 @@ const loginUser = tryCatch(async (req, res) => {
     res.cookie('jwt', newRefreshToken, cookieOptions);
 
     // send authorization roles and access token to user
-    return res.status(200).json({ user, accessToken });
+    return res.status(200).json({ user, accessToken, newRefreshToken });
 });
 
 

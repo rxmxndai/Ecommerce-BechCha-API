@@ -26,17 +26,18 @@ const verifyToken = async (req, res, next) => {
         next(null, payload);
     }
     catch (error) {
-        if (error instanceof jwt.JsonWebTokenError) {
-            console.log("Access token expired!. Attempt for new token");
-            await handleRefreshToken(req, res, async (err, token) => {
-                if (err) {
-                    return next(err, null);
-                }
-                console.log("Access token refreshed!");
-                const payload = await JWTverify({token: token});
-                next(null, payload);
-            });
-        }
+        // if (error instanceof jwt.JsonWebTokenError) {
+        //     console.log("Access token expired!. Attempt for new token");
+        //     await handleRefreshToken(req, res, async (err, token) => {
+        //         if (err) {
+        //             next(err, null);
+        //         }
+        //         console.log("Access token refreshed!");
+        //         const payload = await JWTverify({token: token});
+        //         next(null, payload);
+        //     });
+        // }
+        // console.log(error);
     }
 }
 
@@ -63,7 +64,7 @@ const verifyTokenAndAuthorization = async (req, res, next) => {
 const verifyTokenAndAdmin = (req, res, next) => {
     verifyToken(req, res, async (err, response) => {
         if (err) {
-            return next(err, null);
+            return new customError(err, 403);
         }
         const user = await User.findById( response._id )
         req.user = user;
