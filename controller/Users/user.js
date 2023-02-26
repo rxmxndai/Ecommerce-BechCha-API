@@ -41,9 +41,6 @@ const registerUser = tryCatch(async (req, res) => {
 
 const loginUser = tryCatch(async (req, res) => {
     const cookies = req.cookies;
-
-    console.log(JSON.stringify(cookies));
-
     const user = await User.findOne({ email: req.body.email }).exec();
 
     if (!user) throw new customError("No user found", 404);

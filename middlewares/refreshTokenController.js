@@ -20,39 +20,38 @@ const handleRefreshToken = tryCatch(async (req, res) => {
     const refreshToken = cookies?.jwt;
 
     if (!refreshToken) {
-        return res.status(500).json({message: "No refresh token detected in cookies! please login again.", code: "notoken" });
+        return res.status(500).json({ message: "No refresh token detected in cookies! please login again.", code: "notoken" });
     }
 
 
     // whether user exist with this refresh token
     const foundUser = await User.findOne({ refreshToken }).exec()
 
+
     // refresh token misuse detected!
     if (!foundUser) {
         console.log("No user found with the current refresh token.");
-        jwt.verify(refreshToken, process.env.JWT_SECRET_KEY,
-            async (err, payload) => {
-                if (err) res.status(403).json("Token not valid! Login again")
-                const hackedUser = await User.findOne({ _id: payload._id }).exec();
-                hackedUser.refreshToken = [];
-                const result = await hackedUser.save();
-                console.log(result.username);
-            });
-        return res.status(403).json({message: "No refresh token detected in cookies! please login again.", code: 403 });
+        jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, payload) => {
+            if (err || !payload) return res.status(403).json("Token not valid! Login again")
+            const hackedUser = await User.findOne({ _id: payload._id }).exec();
+            hackedUser.refreshToken = [];
+            const result = await hackedUser.save();
+        });
+
+        return res.status(403).json({ message: "No refresh token detected in cookies! please login again.", code: "notoken" });
     }
 
-
     // now we have a valid refresh token which is also present in database
-    const newTokenArray = foundUser.refreshToken.filter(rt => rt !== refreshToken);
+    const newTokenArray = foundUser.refreshToken ? foundUser.refreshToken?.filter(rt => rt !== refreshToken) : []
 
     jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, decoded) => {
         if (err) {
             console.log("Detected expired rf token!");
             foundUser.refreshToken = [...newTokenArray];
-            const result = await foundUser.save();
+            await foundUser.save();
         }
         else if (err || foundUser._id.toString() !== decoded._id) {
-            return new customError("Forbidden!", null);
+            return next(new customError("Forbidden!", 403));
         }
 
         const payload = {
@@ -61,7 +60,7 @@ const handleRefreshToken = tryCatch(async (req, res) => {
         }
         // get new rt and at
         const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
-        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "15s" });
+        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "15m" });
 
         foundUser.refreshToken = [...newTokenArray, newRefreshToken]
         await foundUser.save();

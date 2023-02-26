@@ -78,7 +78,7 @@ userSchema.methods.generateAuthToken = async function ( )  {
     }
     
     const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "1d"});
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "15s"});
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "15m"});
     
     user.refreshToken = [...user.refreshToken, refreshToken]
 
@@ -101,6 +101,8 @@ userSchema.pre("save", async function (next) {
     }
     next()
 } ) 
+
+
 
 const User = mongoose.model('User', userSchema);
 
