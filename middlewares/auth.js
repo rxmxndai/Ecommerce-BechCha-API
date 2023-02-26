@@ -1,8 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const customError = require("../utils/customError");
-const tryCatch = require("../utils/tryCatch");
-const { handleRefreshToken } = require("./refreshTokenController");
 
 
 
@@ -19,14 +17,13 @@ const verifyToken = async (req, res, next) => {
     const authHeaders = req.headers['authorization']
     let accessToken = authHeaders?.split(" ")[1];
 
-    if (!accessToken) return new customError("No access token detected. Login required!", 404)
+    if (!accessToken) return next(new customError("No access token detected. Login required!", 404))
 
     try {
         const payload = await JWTverify({ token: accessToken })
         next(null, payload);
     }
     catch (error) {
-        console.log(error);
         next(error, null);
     }
 }
@@ -59,7 +56,7 @@ const verifyTokenAndAdmin = (req, res, next) => {
         const user = await User.findById( response._id )
         req.user = user;
         if (!req.user?.isAdmin) {
-            return next(new customError("Need administrative privilage!", 403))
+            return res.status(403).json("Need administrative privilage!")
         }
         else {
            next();
