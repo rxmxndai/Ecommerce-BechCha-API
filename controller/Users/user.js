@@ -42,6 +42,8 @@ const registerUser = tryCatch(async (req, res) => {
 const loginUser = tryCatch(async (req, res) => {
     const cookies = req.cookies;
 
+    console.log(JSON.stringify(cookies));
+
     const user = await User.findOne({ email: req.body.email }).exec();
 
     if (!user) throw new customError("No user found", 404);
@@ -57,9 +59,9 @@ const loginUser = tryCatch(async (req, res) => {
 
     if (!user.isVerified) throw new customError("Please verify OTP through email", 400)
 
-    const newTokenArray =
-        !cookies?.jwt ? user.refreshToken
-            : user.refreshToken.filter(token => token != cookies.jwt);
+
+    // delete old jwt from db too
+    const newTokenArray = !cookies?.jwt ? user.refreshToken : user.refreshToken.filter(token => token != cookies.jwt);
    
     // create access token
     const tokens = await user.generateAuthToken();
@@ -77,9 +79,8 @@ const loginUser = tryCatch(async (req, res) => {
     res.cookie('jwt', newRefreshToken, cookieOptions);
 
     // send authorization roles and access token to user
-    return res.status(200).json({ user, accessToken, newRefreshToken });
+    return res.status(200).json({ user, accessToken });
 });
-
 
 
 const verifyOTP = tryCatch(async (req, res) => {
@@ -139,7 +140,6 @@ const logoutUser = tryCatch(async (req, res) => {
     // On client, also delete the accessToken
     const cookies = req.cookies;
     if (!cookies?.jwt) throw new customError("", 204)
-    console.log(req.cookies?.jwt);
 
     const refreshToken = cookies.jwt;
 
@@ -147,7 +147,7 @@ const logoutUser = tryCatch(async (req, res) => {
     const foundUser = await User.findOne({ refreshToken }).exec();
     if (!foundUser) {
         res.clearCookie('jwt', cookieOptions);
-        throw new customError("No login session detected", 400)
+        throw new customError("No login detected", 400)
     }
 
     // Delete refreshToken in db

@@ -7,89 +7,80 @@ const customError = require("../utils/customError");
 // set refresh token in cookie
 const cookieOptions = {
     httpOnly: true,
+    sameSite: 'None',
     secure: true,
-    sameSite: "None"
 };
 
 
 
-const handleRefreshToken = async (req, res, next) => {
+const handleRefreshToken = async (req, res) => {
 
     const cookies = req.cookies;
-    
-    if (!cookies) {
-        return next("No refresh token detected in cookies! please login again.", null);
-    }
-
     const refreshToken = cookies.jwt;
 
-    // wheather user exist with this refresh token
+    if (!refreshToken) {
+        return res.status(400).json("No refresh token detected in cookies! please login again.");
+    }
+
+
+    // whether user exist with this refresh token
     const foundUser = await User.findOne({ refreshToken }).exec()
 
-    // if the user with refresh token is not found 
-    // must be misuse of refresh token
+    // refresh token misuse detected!
     if (!foundUser) {
         console.log("No user found with the current refresh token.");
-        const payload = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
-        const hackedUser = await User.findOne({ _id: payload._id }).exec();
-        console.log(hackedUser.username);
-        if (!hackedUser) return next("The user with this refresh token does not exist", null);
-        // delete all authentication
-        hackedUser.refreshToken = [];
+        jwt.verify(refreshToken, process.env.JWT_SECRET_KEY,
+            async (err, payload) => {
+                if (err) res.status(403).json("Token not valid! Login again")
 
-        await hackedUser.save();
-        if (cookies?.jwt) {
-            res.clearCookie("jwt", cookieOptions)
-        }
-        next(new customError("Refresh token cleared!", 200))
+                const hackedUser = await User.findOne({ _id: payload._id }).exec();
+
+
+
+                hackedUser.refreshToken = [];
+                const result = await hackedUser.save();
+                console.log(result);
+            });
+        return new customError("Refresh token cleared!", 200);
     }
 
-    else {
 
-        // if user with this refresh token is found
-        console.log("User with the refresh token found!");
+    // now we have a valid refresh token which is also present in database
+    const newTokenArray = foundUser.refreshToken.filter(rt => rt !== refreshToken);
 
-        // now we have a valid refresh token which is also present in database
-        const newTokenArray = foundUser.refreshToken.filter(rt => rt !== refreshToken);
+    try {
+        jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, decoded) => {
+            if (err) {
+                console.log("Detected expired rf token!");
+                foundUser.refreshToken = [...newTokenArray];
+                const result = await foundUser.save();
+            }
+            else if (err || foundUser._id.toString() !== decoded._id) {
+                return new customError("Forbidden!", null);
+            }
 
-        try {
+            const payload = {
+                _id: decoded._id.toString(),
+                isAdmin: decoded.isAdmin
+            }
+            // get new rt and at
+            const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "1d"});
+            const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "1h"} );
 
-            jwt.verify(refreshToken, process.env.JWT_SECRET_KEY, async (err, payload) => {
+            foundUser.refreshToken = [...newTokenArray, newRefreshToken]
+            await foundUser.save();
 
-                if (err) {
-                    // old one
-                    console.log('Expired Refresh Token')
-                    foundUser.refreshToken = [...newTokenArray];
-                    await foundUser.save();
-                }
+            // set refresh token in cookie
+            res.cookie('jwt', newRefreshToken, cookieOptions);
 
-                else if (err || foundUser._id.toString() !== payload._id) {
-                    next("Forbidden!", null);
-                }
-
-
-                // generate new accessToken and refreshToken with valid payload
-                console.log("Expired access token detected!");
-
-                console.log(foundUser.username);
-                const tokens = await foundUser.generateAuthToken();
-                const accessToken = tokens.accessToken;
-                const newRefreshToken = tokens.refreshToken;
-
-                foundUser.refreshToken = [...newTokenArray, newRefreshToken]
-                await foundUser.save();
-                // set refresh token in cookie
-                res.cookie('jwt', newRefreshToken, cookieOptions);
-                req.user = payload;
-                console.log("\nToken refreshed!\n");
-                next(null, accessToken)
-            });
-        }
-        catch (errr) {
-            console.log(errr);
-        }
+            return res.status(200).json({ accessToken });
+        });
+    }
+    catch (errr) {
+        console.log(errr);
     }
 }
+
 
 
 

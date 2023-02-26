@@ -15,6 +15,7 @@ const {
 
 const multer = require("multer");
 const customError = require("../utils/customError");
+const { handleRefreshToken } = require("../middlewares/refreshTokenController");
 
 
 
@@ -69,5 +70,8 @@ router.get("/find", verifyTokenAndAdmin, getAllUser);
 // get user stats
 router.get("/stats", verifyTokenAndAdmin, getStatsUser);
 
+
+// refresh token
+router.get("/refresh", handleRefreshToken);
 
 module.exports = router

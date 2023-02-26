@@ -26,18 +26,8 @@ const verifyToken = async (req, res, next) => {
         next(null, payload);
     }
     catch (error) {
-        // if (error instanceof jwt.JsonWebTokenError) {
-        //     console.log("Access token expired!. Attempt for new token");
-        //     await handleRefreshToken(req, res, async (err, token) => {
-        //         if (err) {
-        //             next(err, null);
-        //         }
-        //         console.log("Access token refreshed!");
-        //         const payload = await JWTverify({token: token});
-        //         next(null, payload);
-        //     });
-        // }
-        // console.log(error);
+        console.log(error);
+        next(error, null);
     }
 }
 
@@ -45,7 +35,7 @@ const verifyTokenAndAuthorization = async (req, res, next) => {
 
     try {
         await verifyToken(req, res, async (err, response) => {
-            if (err) throw new customError(err, 401)
+            if (err) return new customError(err, 401)
             const user = await User.findById( response._id )
             req.user = user;
             if (!user) return res.status(403).json("No user data available!");
