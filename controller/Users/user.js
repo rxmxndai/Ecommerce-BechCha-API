@@ -13,13 +13,19 @@ const cloudinary = require("cloudinary").v2;
 const registerUser = tryCatch(async (req, res) => {
     const file = req?.file;
     const fileURI = file && getDataUri(file);
-    
+
     const { error, value } = await JOIuserSchemaValidate(req.body);
     if (error) throw new customError(`${error.details[0].message}`, 400);
 
     const user = new User(value);
     if (file) {
-        const myCloud = await cloudinary.uploader.upload(fileURI.content)
+
+        const myCloud = await cloudinary.uploader.upload(fileURI.content, {
+            folder: 'Users',
+            width: 150,
+            crop: 'scale',
+        })
+
         user.image = {
             public_id: myCloud.public_id,
             url: myCloud.url,
@@ -28,10 +34,10 @@ const registerUser = tryCatch(async (req, res) => {
 
     await user.save();
 
-    await sendOTPverificationEmail({ userId: user._id, email: user.email}, res, (message, err) => {
-        if (err) return res.status(400).json({message: err})
+    await sendOTPverificationEmail({ userId: user._id, email: user.email }, res, (message, err) => {
+        if (err) return res.status(400).json({ message: err })
         else {
-            return res.status(201).json({user, message});
+            return res.status(201).json({ user, message });
         }
     })
 })
@@ -59,7 +65,7 @@ const loginUser = tryCatch(async (req, res) => {
 
     // delete old jwt from db too
     const newTokenArray = !cookies?.jwt ? user.refreshToken : user.refreshToken.filter(token => token != cookies.jwt);
-   
+
     // create access token
     const tokens = await user.generateAuthToken();
     const newRefreshToken = tokens.refreshToken;
@@ -90,7 +96,7 @@ const verifyOTP = tryCatch(async (req, res) => {
     const expiresAt = userOTPrecord?.expiresAt;
     const hashedOTP = userOTPrecord?.otp;
 
-    
+
     // otp expired?
     if (expiresAt < Date.now()) {
         await OTPmodel.deleteMany({ email });
@@ -117,17 +123,17 @@ const verifyOTP = tryCatch(async (req, res) => {
 })
 
 
-const resendOTP = tryCatch( async (req, res) => {
+const resendOTP = tryCatch(async (req, res) => {
     let { email } = req.body;
 
-    if (!email ) throw new customError("Empty user details!", 400);
+    if (!email) throw new customError("Empty user details!", 400);
 
-    await OTPmodel.deleteMany({email});
-    
-    await sendOTPverificationEmail({ email}, res, (message, err) => {
-        if (err) return res.status(400).json({message: err})
+    await OTPmodel.deleteMany({ email });
+
+    await sendOTPverificationEmail({ email }, res, (message, err) => {
+        if (err) return res.status(400).json({ message: err })
         else {
-            return res.status(201).json({ email, message});
+            return res.status(201).json({ email, message });
         }
     })
 
@@ -178,10 +184,12 @@ const updateUser = tryCatch(async (req, res) => {
     const file = req?.file;
     if (file) {
         try {
-           const fileURI = file && getDataUri(file);
-            const myCloud = await cloudinary.uploader.upload(fileURI.content)
-
-            
+            const fileURI = file && getDataUri(file);
+            const myCloud = await cloudinary.uploader.upload(fileURI.content, {
+                folder: 'Users',
+                width: 150,
+                crop: 'scale',
+            })
             // Destroy the previous image if it exists
             if (oldUser.image && oldUser.image.public_id) {
                 await cloudinary.uploader.destroy(oldUser.image.public_id);
@@ -192,7 +200,7 @@ const updateUser = tryCatch(async (req, res) => {
                 url: myCloud.url,
             }
             // Save the updates to the database
-           user =  await oldUser.save();
+            user = await oldUser.save();
         }
         catch (er) {
             console.log(er);
@@ -201,7 +209,7 @@ const updateUser = tryCatch(async (req, res) => {
         // Save the updates to the database if no file was uploaded
         user = await oldUser.save();
     }
-    
+
     return res.status(201).json(user);
 })
 
@@ -213,7 +221,7 @@ const deleteUser = tryCatch(async (req, res) => {
     if (deletedUser.image && deletedUser.image.public_id) {
         await cloudinary.uploader.destroy(deletedUser.image.public_id)
     }
-    
+
     if (!deletedUser) throw new customError("No USER record found", 404)
 
     return res.status(200).json(deletedUser)
@@ -239,7 +247,7 @@ const getAllUser = tryCatch(async (req, res) => {
 
     // sort ({parameter: asc or desc})
     // limit => pagination (limit(how many))
-    const users = query ? await User.find({}).sort({ createdAt: 1 }).limit(5 ) : await User.find({}).sort({ createdAt: -1 });
+    const users = query ? await User.find({}).sort({ createdAt: 1 }).limit(5) : await User.find({}).sort({ createdAt: -1 });
 
     if (!users) throw new customError("No USER record found", 404)
 

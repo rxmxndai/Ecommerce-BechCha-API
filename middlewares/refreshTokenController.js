@@ -60,7 +60,7 @@ const handleRefreshToken = tryCatch(async (req, res) => {
         }
         // get new rt and at
         const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
-        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "15m" });
+        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1m" });
 
         foundUser.refreshToken = [...newTokenArray, newRefreshToken]
         await foundUser.save();

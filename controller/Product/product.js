@@ -31,7 +31,9 @@ const addProduct = tryCatch(async (req, res) => {
         let images = await Promise.all(
             files.map(async (file) => {
               const fileURI = getDataUri(file);
-              const myCloud = await cloudinary.uploader.upload(fileURI.content);
+              const myCloud = await cloudinary.uploader.upload(fileURI.content, {
+                folder: "Products"
+              });
               return {
                 public_id: myCloud.public_id,
                 url: myCloud.url,
@@ -74,7 +76,6 @@ const updateProduct = tryCatch(async (req, res) => {
     const files = req?.files;
     if (files.length > 0) {
         try {
-            console.log(files.length);
             productP.images.map( async (image) => {
                 await cloudinary.uploader.destroy(image.public_id);
             })
@@ -82,7 +83,9 @@ const updateProduct = tryCatch(async (req, res) => {
             productP.images = await Promise.all(
                 files.map(async (file) => {
                   const fileURI = getDataUri(file);
-                  const myCloud = await cloudinary.uploader.upload(fileURI.content);
+                  const myCloud = await cloudinary.uploader.upload(fileURI.content, {
+                    folder: "Products"
+                  });
                   return {
                     public_id: myCloud.public_id,
                     url: myCloud.url,
