@@ -1,11 +1,11 @@
-const User = require("../../models/User");
-const { decryptHashedPass, sendOTPverificationEmail } = require("../../utils/utils");
-const tryCatch = require("../../utils/tryCatch");
-const OTPmodel = require("../../models/OTPverification");
-const { JOIuserSchemaValidate } = require("../../middlewares/JoiValidator")
-const customError = require("../../utils/customError");
-const { cookieOptions } = require("../../middlewares/refreshTokenController");
-const { getDataUri } = require("../../utils/dataURI");
+const User = require("../models/User");
+const { decryptHashedPass, sendOTPverificationEmail } = require("../utils/utils");
+const tryCatch = require("../utils/tryCatch");
+const OTPmodel = require("../models/OTPverification");
+const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
+const customError = require("../utils/customError");
+const { cookieOptions } = require("../middlewares/refreshTokenController");
+const { getDataUri } = require("../utils/dataURI");
 const cloudinary = require("cloudinary").v2;
 
 

@@ -7,7 +7,7 @@ const {
     getAllCategories,
     deleteCategory,
     getOneCategory
-} = require("../controller/Categories/category")
+} = require("../controller/category")
 const multer = require("multer")
 
 

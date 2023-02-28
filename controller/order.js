@@ -1,8 +1,8 @@
-const Order = require("../../models/Order");
-const tryCatch = require("../../utils/tryCatch");
+const Order = require("../models/Order");
+const tryCatch = require("../utils/tryCatch");
 const { startOfMonth, endOfMonth, subMonths } = require('date-fns');
-const customError = require("../../utils/customError");
-const User = require("../../models/User");
+const customError = require("../utils/customError");
+const User = require("../models/User");
 
 
 

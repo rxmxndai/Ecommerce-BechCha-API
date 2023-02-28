@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { verifyTokenAndAdmin }  = require("../middlewares/auth");
-const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts } = require("../controller/Product/product");
+const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts } = require("../controller/product");
 const customError = require("../utils/customError");
 const multer = require("multer");
 

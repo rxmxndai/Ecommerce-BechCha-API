@@ -11,7 +11,7 @@ const {
     getAllUser, 
     getStatsUser,
     resendOTP
-} = require("../controller/Users/user")
+} = require("../controller/user")
 
 const multer = require("multer");
 const customError = require("../utils/customError");

@@ -1,8 +1,8 @@
-const Category = require("../../models/Category")
-const tryCatch = require("../../utils/tryCatch");
+const Category = require("../models/Category")
+const tryCatch = require("../utils/tryCatch");
 const slugify = require("slugify");
-const customError = require("../../utils/customError");
-const { getDataUri } = require("../../utils/dataURI");
+const customError = require("../utils/customError");
+const { getDataUri } = require("../utils/dataURI");
 const cloudinary = require("cloudinary").v2;
 
 const createCategories = (categories, parentId = null) => {

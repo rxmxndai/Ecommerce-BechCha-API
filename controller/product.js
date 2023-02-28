@@ -1,8 +1,8 @@
-const Product = require("../../models/Product");
-const { JOIproductSchemaValidate } = require("../../middlewares/JoiValidator");
-const tryCatch = require("../../utils/tryCatch");
-const customError = require("../../utils/customError");
-const { getDataUri } = require("../../utils/dataURI")
+const Product = require("../models/Product");
+const { JOIproductSchemaValidate } = require("../middlewares/JoiValidator");
+const tryCatch = require("../utils/tryCatch");
+const customError = require("../utils/customError");
+const { getDataUri } = require("../utils/dataURI")
 const cloudinary = require("cloudinary").v2;
 
 
