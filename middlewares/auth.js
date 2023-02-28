@@ -32,7 +32,7 @@ const verifyTokenAndAuthorization = async (req, res, next) => {
 
     try {
         await verifyToken(req, res, async (err, response) => {
-            if (err) return new customError(err, 401)
+            if (err) return next(new customError(err, 401))
             const user = await User.findById( response._id )
             req.user = user;
             if (!user) return res.status(403).json("No user data available!");

@@ -1,28 +1,15 @@
-
+const { addToCart } = require("../controller/cart");
 const Cart = require("../models/Cart");
 const router = require("express").Router();
-const {  verifyTokenAndAdmin, verifyTokenAndAuthorization }  = require("./verifyToken");
-
-
+const {  verifyTokenAndAdmin, verifyTokenAndAuthorization }  = require("../middlewares/auth");
 
 
 // create cart (for all authenticated users)
-router.post("/", verifyTokenAndAuthorization, async (req, res, next) => {
-    
-    const newCart = new Cart(req.body)
-
-    try {
-        const savedCart = await newCart.save();
-        res.status(201).json(savedCart);
-    }
-    catch (err) {
-        res.status(500).json(err.message)
-    }
-})
+router.post("/", verifyTokenAndAuthorization, addToCart);
 
 
 // update cart
-router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
+router.patch( "/:id", verifyTokenAndAuthorization, async (req, res) => {
         
         try {
             const updatedCart = await Cart.findByIdAndUpdate( 
@@ -31,9 +18,9 @@ router.put( "/:id", verifyTokenAndAuthorization, async (req, res) => {
                     $set: req.body,
                 },
                 { new: true }
-            )  
+            )
 
-            res.status(201).json( updatedCart );
+            returnres.status(201).json( updatedCart );
         }
         catch (err) {
             res.status(500).json(err)

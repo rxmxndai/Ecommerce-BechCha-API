@@ -9,7 +9,7 @@ const tryCatch = require("../utils/tryCatch");
 const cookieOptions = {
     httpOnly: true,
     sameSite: 'None',
-    secure: true,
+    secure: false,
     maxAge: 24 * 60 * 60 * 1000
 };
 
@@ -61,7 +61,7 @@ const handleRefreshToken = tryCatch(async (req, res) => {
         }
         // get new rt and at
         const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
-        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1m" });
+        const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
 
         foundUser.refreshToken = [...newTokenArray, newRefreshToken]
         await foundUser.save();
