@@ -7,9 +7,15 @@ const tryCatch = require("../utils/tryCatch")
 
 const addToCart = tryCatch(async (req, res) => {
 
-    const { cart } = req.body;
+    const { product, quantity, price } = req.body;
+    console.log(req.body);
+    if (!product || !quantity || !price ) throw new customError("Needs a cart item!", 400);
 
-    if (!cart) throw new customError("Needs a cart item!", 400);
+    const cart = {
+        product: product, quantity, price
+    }
+
+    
 
     const user = await Cart.findOne({ user: req.user._id })
 

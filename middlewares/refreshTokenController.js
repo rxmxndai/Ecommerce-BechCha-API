@@ -9,7 +9,7 @@ const tryCatch = require("../utils/tryCatch");
 const cookieOptions = {
     httpOnly: true,
     sameSite: 'None',
-    secure: false,
+    secure: true,
     maxAge: 24 * 60 * 60 * 1000
 };
 

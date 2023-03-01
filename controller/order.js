@@ -68,7 +68,7 @@ const getAllOrders = tryCatch(async (req, res) => {
 
 const getSalesAnalytics = tryCatch( async (req, res) => {
     const SalesLastMonth = await Order.find({
-        createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }, 
+        createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate },
         status: "delivered",
         isPaid: true,
     });
@@ -78,7 +78,6 @@ const getSalesAnalytics = tryCatch( async (req, res) => {
         createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate },
         status: "delivered",
         isPaid: true,
-        isDelivered: true,
     });
     
     if (!SalesThisMonth) throw new customError("No sales this month", 404);
@@ -87,6 +86,9 @@ const getSalesAnalytics = tryCatch( async (req, res) => {
     const totalSalesLastMonth = SalesLastMonth?.reduce((totalSales, order) => totalSales + order.totalAmount, 0);
     const result = DifferenceInPerc(totalSalesThisMonth, totalSalesLastMonth);
 
+
+    // console.log(result, totalSalesLastMonth, totalSalesThisMonth);
+
     return res.status(200).json({result, totalSalesLastMonth, totalSalesThisMonth})
 })
 
@@ -94,26 +96,47 @@ const getSalesAnalytics = tryCatch( async (req, res) => {
 
 
 const getOrdersAnalytics = tryCatch( async (req, res) => {
+
+    // all orders created last nmonth OnlyCount
     const LastMonthCount = await Order.countDocuments({
         createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }
     });
 
+    // all orders created this nmonth OnlyCount
     const ThisMonthCount = await Order.countDocuments({
         createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate }
     });
 
+
+    // percentage for orders created difference
     const orderCountDifference = DifferenceInPerc(ThisMonthCount, LastMonthCount);
 
-    let orders = await Order.find({createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }});
-    const orderAmountNow = orders.reduce((value, ord) => {
+
+    // orders document list which is paid and last month
+    let ordersBefore = await Order.find({
+        createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate },
+        isPaid: true
+    });
+    const orderAmountPrev = ordersBefore.reduce((value, ord) => {
         return value + ord.totalAmount;
     }, 0)
-    orders = await Order.find({createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate }});
-    const orderAmountPrev = orders.reduce((value, ord) => {
+    
+
+    // orders document list which is paid and this month
+    let ordersThis = await Order.find({
+        createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate },
+        isPaid: true
+    });
+    const orderAmountNow = ordersThis.reduce((value, ord) => {
         return value + ord.totalAmount;
     }, 0)
 
     const orderAmountDifference = DifferenceInPerc(orderAmountNow, orderAmountPrev);
+
+    console.log(
+        orderAmountNow, 
+        orderAmountPrev, 
+        orderAmountDifference);
 
     return res.status(200).json({
         orderCountDifference, 
@@ -127,11 +150,11 @@ const getOrdersAnalytics = tryCatch( async (req, res) => {
 
 
 const getUserPercentage = tryCatch( async (req, res) => {
-    const LastMonthCount = await Order.countDocuments({
+    const LastMonthCount = await User.countDocuments({
         createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }
     });
 
-    const ThisMonthCount = await Order.countDocuments({
+    const ThisMonthCount = await User.countDocuments({
         createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate }
     });
 
