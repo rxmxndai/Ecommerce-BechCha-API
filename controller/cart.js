@@ -7,15 +7,13 @@ const tryCatch = require("../utils/tryCatch")
 
 const addToCart = tryCatch(async (req, res) => {
 
-    const { product, quantity, price } = req.body;
-    console.log(req.body);
+    const { product, quantity, price, max } = req.body;
+
     if (!product || !quantity || !price ) throw new customError("Needs a cart item!", 400);
 
     const cart = {
         product: product, quantity, price
     }
-
-    
 
     const user = await Cart.findOne({ user: req.user._id })
 
@@ -25,14 +23,19 @@ const addToCart = tryCatch(async (req, res) => {
         // check for duplicate proiducts in the same cart
         const item = user.cart.find(c => c.product.toString() == cart.product)
         const quantity = Number(cart.quantity);
-        if (isNaN(quantity) || quantity <= 0) throw new customError("Invalid quantity", 400);
+        if (isNaN(quantity) || quantity <= 0 || quantity >  Number(max) ) {
+            throw new customError("Invalid quantity", 400);
+        } 
+        else if (item.quantity + cart.quantity > Number(max)) {
+            throw new customError("Quantity exceeds stock", 400);
+        }
 
         if (item) {
             // console.log("Dupliocate found");
             condition = { user: req.user._id, "cart.product": cart.product }
             action = {
                 "$set": {
-                    "cart.$.quantity": cart.quantity + item.quantity,
+                    "cart.$.quantity": Number(cart.quantity) + Number(item.quantity),
                     "cart.$.price": cart.price
                 }
             }
@@ -68,6 +71,16 @@ const addToCart = tryCatch(async (req, res) => {
 
 
 
+const getMyCart = tryCatch( async (req, res) => {
+    const cart = await Cart.findOne({user: req.user._id}).populate(["cart.product"])
+    
+    if (!cart) throw new customError("Cart empty. Add items to cart!" , 404);
+
+    return res.status(200).json(cart);
+})
+ 
+
 module.exports = {
-    addToCart
+    addToCart,
+    getMyCart
 }

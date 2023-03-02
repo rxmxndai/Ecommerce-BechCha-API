@@ -133,11 +133,6 @@ const getOrdersAnalytics = tryCatch( async (req, res) => {
 
     const orderAmountDifference = DifferenceInPerc(orderAmountNow, orderAmountPrev);
 
-    console.log(
-        orderAmountNow, 
-        orderAmountPrev, 
-        orderAmountDifference);
-
     return res.status(200).json({
         orderCountDifference, 
         ThisMonthCount, 

@@ -20,12 +20,16 @@ const addProduct = tryCatch(async (req, res) => {
         price,
         createdBy: req.user._id
     }
-
+    
     const { error, value } = await JOIproductSchemaValidate(productValue);
 
-    if (error) throw new customError(`${error.details[0].message}`, 202)
+    console.log(error, "asdada");
+
+    if (error) throw new customError(`${error.details[0].message}`, 400)
 
     const saveProduct = new Product(value);
+
+
     const files = req?.files;
     if (files) {
         let images = await Promise.all(
@@ -43,7 +47,11 @@ const addProduct = tryCatch(async (req, res) => {
 
         saveProduct.images = images;
     }
+
+    
     const product = await saveProduct.save();
+
+    console.log(product, "created!");
 
     return res.status(201).json({
         product
@@ -116,7 +124,7 @@ const updateProduct = tryCatch(async (req, res) => {
 const deleteProduct = tryCatch(async (req, res, next) => {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id)
 
-    if (!deletedProduct) throw new Error("No record found")
+    if (!deletedProduct) throw new customError("No record found", 500)
 
     deleteProduct.images?.map( async (image) => {
         await cloudinary.uploader.destroy(image.public_id);
@@ -124,7 +132,7 @@ const deleteProduct = tryCatch(async (req, res, next) => {
 
     const product = deletedProduct._doc;
 
-    res.status(200).json( product )
+    return res.status(200).json( product )
 })
 
 

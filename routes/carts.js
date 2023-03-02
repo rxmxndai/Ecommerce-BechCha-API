@@ -1,12 +1,17 @@
-const { addToCart } = require("../controller/cart");
+const { addToCart, getMyCart } = require("../controller/cart");
 const Cart = require("../models/Cart");
 const router = require("express").Router();
 const {  verifyTokenAndAdmin, verifyTokenAndAuthorization }  = require("../middlewares/auth");
 
+const multer = require("multer");
+
+const upload = multer();
 
 // create cart (for all authenticated users)
-router.post("/", verifyTokenAndAuthorization, addToCart);
+router.post("/", verifyTokenAndAuthorization, upload.none(""), addToCart);
 
+// get particular cart
+router.get("/", verifyTokenAndAuthorization, getMyCart);
 
 // update cart
 router.patch( "/:id", verifyTokenAndAuthorization, async (req, res) => {
@@ -47,19 +52,6 @@ router.delete("/:id", verifyTokenAndAuthorization, async (req, res, next) => {
 
 
 
-// get particular cart
-router.get("/find/:userid", verifyTokenAndAuthorization, async (req, res) =>{
-    try {
-        const cart = await Cart.findOne( {userId: req.params.userid} )
-
-        if (!cart) throw new Error("No record found")
-
-        res.status(200).json(cart)
-    }
-    catch (err) {
-        res.status(500).json(err.message)
-    }
-} )
 
 
 
