@@ -53,7 +53,7 @@ const deleteOrder = tryCatch(async (req, res, next) => {
 
 
 const getOneOrder = tryCatch(async (req, res) => {
-    const orders = await Order.find({ userId: req.params.id }).populate(["userId", "products"])
+    const orders = await Order.find({ userId: req.user._id }).populate(["userId", "products"])
     if (!orders) throw new Error("No record found")
 
     return res.status(200).json(orders)

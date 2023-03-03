@@ -18,12 +18,12 @@ router.delete("/:id", verifyTokenAndAuthorization, deleteOrder);
 
 
 // get particular order from an individual customer
-router.get("/:id", verifyTokenAndAuthorization, getOneOrder);
+router.get("/", verifyTokenAndAuthorization, getOneOrder);
 
 
 // get all cart items
 // only accessible to admin
-router.get("/", verifyTokenAndAdmin, getAllOrders);
+router.get("/all", verifyTokenAndAdmin, getAllOrders);
 
 
 // get monthly income
