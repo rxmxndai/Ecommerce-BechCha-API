@@ -23,8 +23,6 @@ const addProduct = tryCatch(async (req, res) => {
     
     const { error, value } = await JOIproductSchemaValidate(productValue);
 
-    console.log(error, "asdada");
-
     if (error) throw new customError(`${error.details[0].message}`, 400)
 
     const saveProduct = new Product(value);
@@ -50,8 +48,6 @@ const addProduct = tryCatch(async (req, res) => {
 
     
     const product = await saveProduct.save();
-
-    console.log(product, "created!");
 
     return res.status(201).json({
         product
@@ -126,9 +122,11 @@ const deleteProduct = tryCatch(async (req, res, next) => {
 
     if (!deletedProduct) throw new customError("No record found", 500)
 
-    deleteProduct.images?.map( async (image) => {
+   if (deletedProduct.image) {
+    await Promise.all( deleteProduct.images?.map( async (image) => {
         await cloudinary.uploader.destroy(image.public_id);
-    })
+    }))
+   }
 
     const product = deletedProduct._doc;
 

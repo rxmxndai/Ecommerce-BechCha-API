@@ -128,7 +128,9 @@ const deleteCategory = tryCatch(async (req, res) => {
 
     const deletedCat = await Category.findByIdAndDelete({ _id: categoryId })
 
-    await cloudinary.uploader.destroy(deletedCat.image.public_id);
+    if (!deletedCat) throw new customError("No such category!", 404);
+
+    await cloudinary.uploader.destroy(deletedCat.image.public_id)
 
     return res.status(200).json({ ...deletedCat._doc });
 })
