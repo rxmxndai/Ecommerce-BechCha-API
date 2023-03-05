@@ -63,7 +63,13 @@ const handleRefreshToken = tryCatch(async (req, res) => {
         const newRefreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
         const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
 
-        foundUser.refreshToken = [...newTokenArray, newRefreshToken]
+        if (foundUser.refreshToken.length > 5) {
+            newTokenArray.shift();
+            foundUser.refreshToken = [...newTokenArray, newRefreshToken]
+        }
+        else {
+            foundUser.refreshToken = [...newTokenArray, newRefreshToken]
+        }
         await foundUser.save();
 
         // set refresh token in cookie

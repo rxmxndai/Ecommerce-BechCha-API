@@ -5,29 +5,6 @@ const customError = require("../utils/customError");
 const { getDataUri } = require("../utils/dataURI");
 const cloudinary = require("cloudinary").v2;
 
-const createCategories = (categories, parentId = null) => {
-    let CategoriesList = [];
-    let categoryList;
-
-    if (parentId == null) {
-        categoryList = categories.filter((cat) => cat.parentId == undefined)
-    }
-    else {
-        categoryList = categories.filter((cat) => cat.parentId == parentId)
-    }
-
-    for (let each of categoryList) {
-        CategoriesList.push({
-            _id: each._id,
-            name: each.name,
-            slug: each.slug,
-            image: each.image.url,
-            // recursive calls for children with same data as parent Cat
-            children: createCategories(categories, each._id)
-        })
-    }
-    return CategoriesList;
-}
 
 
 
@@ -154,12 +131,7 @@ const getAllCategories = tryCatch(async (req, res) => {
     if (!categories) throw new customError("No categories exist!", 500);
 
     let CategoryList;
-    if (req.query.child === "none") {
-        CategoryList = createCategories(categories);
-    }
-    else {
-        CategoryList = categories;
-    }
+    CategoryList = categories;
 
     return res.status(200).json({
         CategoryList

@@ -185,9 +185,11 @@ const getAllProducts = tryCatch(async (req, res) => {
         else if (querySort === "desc"){
             options.sort = {price: -1};
         }
+        else {
+            options.sort = {createdAt: -1};
+        }
     }
 
-    options.sort = { createdAt: -1 }
 
     // sort ({parameter: asc or desc})
     // limit => pagination (limit(how many))

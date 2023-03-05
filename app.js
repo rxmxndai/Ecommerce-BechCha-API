@@ -8,6 +8,7 @@ const productRoute = require("./routes/products")
 const categoryRoute = require("./routes/categories")
 const orderRoute = require("./routes/orders")
 const cartRoute = require("./routes/carts")
+const addressRoute = require("./routes/addresses")
 
 const errorHandler = require("./middlewares/errorHandler")
 const credentials = require("./middlewares/credentials")
@@ -40,7 +41,8 @@ app.use("/api/users", userRoute);
 app.use("/api/categories", categoryRoute);
 app.use("/api/products", productRoute);
 app.use("/api/orders", orderRoute);
-app.use("/api/cart", cartRoute)
+app.use("/api/cart", cartRoute);
+app.use("/api/address", addressRoute)
 app.use(errorHandler);
 
 

@@ -16,10 +16,23 @@ const DifferenceInPerc = (a, b) => {
     return result = [(a-b) / b] * 100;
 }
 
-const addOrder = tryCatch(async (req, res, next) => {
-    const order = new Order(req.body)
-    const savedOrder = await order.save();
-    return res.status(201).json(savedOrder);
+const addOrder = tryCatch(async (req, res) => {
+
+    const { products,  payable, totalItems } = req.body;
+
+    if (!products || products.length <=0 || ! payable || !totalItems ) {
+        throw new customError("Order details insufficient. Provide all details.", 400);
+    }
+
+    const values = { 
+        user: req.user._id, 
+        payable,
+        totalItems,
+        products
+    };
+
+    const order = await new Order(values).save();
+    return res.status(201).json(order);
 })
 
 
@@ -53,7 +66,7 @@ const deleteOrder = tryCatch(async (req, res, next) => {
 
 
 const getOneOrder = tryCatch(async (req, res) => {
-    const orders = await Order.find({ userId: req.user._id }).populate(["userId", "products"])
+    const orders = await Order.find({ user: req.user._id }).populate(["user", "products.product"])
     if (!orders) throw new Error("No record found")
 
     return res.status(200).json(orders)
@@ -61,11 +74,13 @@ const getOneOrder = tryCatch(async (req, res) => {
 })
 
 const getAllOrders = tryCatch(async (req, res) => {
-    const orders = await Order.find().populate([`userId`, "products"]);
+    const orders = await Order.find().populate([`user`, "products.product"]);
     return res.status(200).json(orders)
 })
 
 
+
+//Analytics and stats of orders past month to now
 const getSalesAnalytics = tryCatch( async (req, res) => {
     const SalesLastMonth = await Order.find({
         createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate },

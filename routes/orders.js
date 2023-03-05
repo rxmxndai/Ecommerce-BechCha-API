@@ -11,19 +11,20 @@ router.post("/", verifyTokenAndAuthorization,  upload.none(), addOrder);
 
 
 // update order
-router.put( "/:id", verifyTokenAndAuthorization, updateOrder);
+router.put( "/:id", verifyTokenAndAdmin, updateOrder);
 
-
+// delete order
 router.delete("/:id", verifyTokenAndAuthorization, deleteOrder);
 
-
 // get particular order from an individual customer
-router.get("/", verifyTokenAndAuthorization, getOneOrder);
+router.get("/me", verifyTokenAndAuthorization, getOneOrder);
 
 
 // get all cart items
 // only accessible to admin
-router.get("/all", verifyTokenAndAdmin, getAllOrders);
+router.get("/", verifyTokenAndAdmin, getAllOrders);
+
+
 
 
 // get monthly income
