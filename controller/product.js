@@ -153,8 +153,7 @@ const getAllProducts = tryCatch(async (req, res) => {
     // query
     const querySort = req.query.sort
     const limitPrice = parseInt(req.query.limitprice)
-    const queryLimit = parseInt(req.query.limit) || 20;
-    const queryPage = parseInt(req.query.page) || 1;
+    const queryLimit = parseInt(req.query.limit);
     const subIds = req.query.subIds;
 
     let queries = { }
@@ -172,9 +171,8 @@ const getAllProducts = tryCatch(async (req, res) => {
     }
 
     // pagination
-    if (queryLimit && queryPage) {
+    if (queryLimit) {
         options.limit = queryLimit;
-        options.skip = (queryPage - 1) * queryLimit;
     }
 
     // sort by price order

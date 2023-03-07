@@ -66,7 +66,7 @@ const addToCart = tryCatch(async (req, res) => {
 const getMyCart = tryCatch(async (req, res) => {
     const cart = await Cart.findOne({ user: req.user._id }).populate(["cart.product"])
 
-    if (!cart) throw new customError("empty", 404);
+    if (!cart) return res.status(200).json([]);
 
     return res.status(200).json(cart);
 })

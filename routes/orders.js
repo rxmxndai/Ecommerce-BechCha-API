@@ -1,4 +1,4 @@
-const { addOrder, deleteOrder, updateOrder, getAllOrders, getOneOrder, getSalesAnalytics, getOrdersAnalytics, getUserPercentage } = require("../controller/order");
+const { addOrder, deleteOrder, updateOrder, getAllOrders, getOneOrder, getSalesAnalytics, getOrdersAnalytics, getUserPercentage, getOneOrderById } = require("../controller/order");
 const router = require("express").Router();
 const {  verifyTokenAndAdmin, verifyTokenAndAuthorization }  = require("../middlewares/auth");
 const multer = require('multer');
@@ -16,13 +16,16 @@ router.put( "/:id", verifyTokenAndAdmin, updateOrder);
 // delete order
 router.delete("/:id", verifyTokenAndAuthorization, deleteOrder);
 
-// get particular order from an individual customer
+// get particular USER'S OREDER from an individual customer
 router.get("/me", verifyTokenAndAuthorization, getOneOrder);
+
+// get particular order 
+router.get("/me", verifyTokenAndAuthorization, getOneOrderById);
 
 
 // get all cart items
 // only accessible to admin
-router.get("/", verifyTokenAndAdmin, getAllOrders);
+router.get("/:id", verifyTokenAndAdmin, getAllOrders);
 
 
 

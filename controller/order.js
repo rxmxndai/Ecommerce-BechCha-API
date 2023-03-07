@@ -66,15 +66,48 @@ const deleteOrder = tryCatch(async (req, res, next) => {
 
 
 const getOneOrder = tryCatch(async (req, res) => {
-    const orders = await Order.find({ user: req.user._id }).populate(["user", "products.product"])
-    if (!orders) throw new Error("No record found")
+    const orders = await Order.find({ user: req.user._id }, null,  { sort : {createdAt: -1} }).populate(["user", "products.product"])
+    if (!orders) return res.status(200).json([])
 
     return res.status(200).json(orders)
 
 })
 
+
+const getOneOrderById = tryCatch(async (req, res) => {
+
+    const orderId = req.params.id;
+    const userId = req.user._id;
+    const isAdmin = req.user?.isAdmin;
+
+    let order;
+
+    if (isAdmin) {
+        order = await Order.findOne({_id: orderId, user: userId}).populate(["user", "products.product"])
+    }
+    else {
+        order = await Order.findOne({_id: orderId }).populate(["user", "products.product"])
+    }
+
+    if (!order) return res.status(200).json([])
+
+    return res.status(200).json(order)
+
+})
+
+
+
+/// GET ALL ORDERS FFROM DB
 const getAllOrders = tryCatch(async (req, res) => {
-    const orders = await Order.find().populate([`user`, "products.product"]);
+    const queryLimit = parseInt(req.query?.limit)
+    let options = {}, queries = {};
+    if (queryLimit) {
+        options.limit = queryLimit
+    }
+
+    options.sort = {createdAt: -1};
+
+    const orders = await Order.find(queries, null, options).populate([`user`, "products.product"]);
     return res.status(200).json(orders)
 })
 
@@ -85,20 +118,20 @@ const getSalesAnalytics = tryCatch( async (req, res) => {
     const SalesLastMonth = await Order.find({
         createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate },
         status: "delivered",
-        isPaid: true,
     });
     if (!SalesLastMonth) throw new customError("No sales last month", 404);
 
     const SalesThisMonth = await Order.find({
         createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate },
         status: "delivered",
-        isPaid: true,
     });
     
     if (!SalesThisMonth) throw new customError("No sales this month", 404);
 
-    const totalSalesThisMonth = SalesThisMonth?.reduce((totalSales, order) => totalSales + order.totalAmount, 0);
-    const totalSalesLastMonth = SalesLastMonth?.reduce((totalSales, order) => totalSales + order.totalAmount, 0);
+    // console.log("Last: ", SalesLastMonth, "\nThis: ", SalesThisMonth);
+
+    const totalSalesThisMonth = SalesThisMonth?.reduce((totalSales, order) => totalSales + order.payable, 0);
+    const totalSalesLastMonth = SalesLastMonth?.reduce((totalSales, order) => totalSales + order.payable, 0);
     const result = DifferenceInPerc(totalSalesThisMonth, totalSalesLastMonth);
 
 
@@ -130,20 +163,18 @@ const getOrdersAnalytics = tryCatch( async (req, res) => {
     // orders document list which is paid and last month
     let ordersBefore = await Order.find({
         createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate },
-        isPaid: true
     });
     const orderAmountPrev = ordersBefore.reduce((value, ord) => {
-        return value + ord.totalAmount;
+        return value + ord.payable;
     }, 0)
     
 
     // orders document list which is paid and this month
     let ordersThis = await Order.find({
         createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate },
-        isPaid: true
     });
     const orderAmountNow = ordersThis.reduce((value, ord) => {
-        return value + ord.totalAmount;
+        return value + ord.payable;
     }, 0)
 
     const orderAmountDifference = DifferenceInPerc(orderAmountNow, orderAmountPrev);
@@ -178,6 +209,7 @@ module.exports = {
     updateOrder,
     deleteOrder,
     getOneOrder,
+    getOneOrderById,
     getAllOrders,
     getSalesAnalytics,
     getOrdersAnalytics,
