@@ -20,12 +20,11 @@ router.delete("/:id", verifyTokenAndAuthorization, deleteOrder);
 router.get("/me", verifyTokenAndAuthorization, getOneOrder);
 
 // get particular order 
-router.get("/me", verifyTokenAndAuthorization, getOneOrderById);
-
+router.get("/:id", verifyTokenAndAuthorization, getOneOrderById);
 
 // get all cart items
 // only accessible to admin
-router.get("/:id", verifyTokenAndAdmin, getAllOrders);
+router.get("/", verifyTokenAndAdmin, getAllOrders);
 
 
 
