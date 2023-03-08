@@ -16,6 +16,29 @@ const DifferenceInPerc = (a, b) => {
     return result = [(a-b) / b] * 100;
 }
 
+
+// cancel order
+const cancelOrder = tryCatch( async (req, res) => {
+    const orderId = req.params.id;
+
+    const order = await Order.findById(orderId);
+
+    if (!order) throw new customError("No order found!", 404);
+
+    if (order.status === "pending") {
+        order.status = "cancelled";
+        await order.save();
+        return res.status(202).json("Order cancelled.")
+    }
+    else {
+        return res.status(400).json("Order cannot be cancelled now.")
+    }
+})
+
+
+
+
+/// add or place an order
 const addOrder = tryCatch(async (req, res) => {
 
     const { products,  payable, totalItems } = req.body;
@@ -37,21 +60,8 @@ const addOrder = tryCatch(async (req, res) => {
 
 
 
-const updateOrder = tryCatch(async (req, res) => {
-    const updatedOrder = await Order.findByIdAndUpdate(
-        req.params.id,
-        {
-            $set: req.body,
-        },
-        { new: true }
-    )
 
-    return res.status(201).json(updatedOrder);
-
-})
-
-
-
+// delete one order can be done by admin only
 const deleteOrder = tryCatch(async (req, res, next) => {
     const deletedOrder = await Order.findByIdAndDelete(req.params.id)
 
@@ -65,6 +75,8 @@ const deleteOrder = tryCatch(async (req, res, next) => {
 })
 
 
+
+// get One user's orderList
 const getOneOrder = tryCatch(async (req, res) => {
     const orders = await Order.find({ user: req.user._id }, null,  { sort : {createdAt: -1} }).populate(["user", "products.product"])
     if (!orders) return res.status(200).json([])
@@ -74,6 +86,8 @@ const getOneOrder = tryCatch(async (req, res) => {
 })
 
 
+
+// returns details of one order
 const getOneOrderById = tryCatch(async (req, res) => {
 
     const orderId = req.params.id;
@@ -206,7 +220,7 @@ const getUserPercentage = tryCatch( async (req, res) => {
 
 module.exports = {
     addOrder,
-    updateOrder,
+    cancelOrder,
     deleteOrder,
     getOneOrder,
     getOneOrderById,
