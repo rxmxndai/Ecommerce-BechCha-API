@@ -1,4 +1,5 @@
 const Category = require("../models/Category")
+const Product = require("../models/Product")
 const tryCatch = require("../utils/tryCatch");
 const slugify = require("slugify");
 const customError = require("../utils/customError");
@@ -104,6 +105,8 @@ const deleteCategory = tryCatch(async (req, res) => {
     if (!categoryId) throw new customError("No category defined for delete!", 400);
 
     const deletedCat = await Category.findByIdAndDelete({ _id: categoryId })
+
+    await Product.updateMany({category : categoryId}, { $set: { category: null } });
 
     if (!deletedCat) throw new customError("No such category!", 404);
 

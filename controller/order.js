@@ -97,10 +97,10 @@ const getOneOrderById = tryCatch(async (req, res) => {
     let order;
 
     if (isAdmin) {
-        order = await Order.findOne({_id: orderId, user: userId}).populate(["user", "products.product"])
-    }
-    else {
         order = await Order.findOne({_id: orderId }).populate(["user", "products.product"])
+    }
+    else { 
+        order = await Order.findOne({_id: orderId, user: userId}).populate(["user", "products.product"])
     }
 
     if (!order) return res.status(200).json([])
@@ -121,7 +121,12 @@ const getAllOrders = tryCatch(async (req, res) => {
 
     options.sort = {createdAt: -1};
 
-    const orders = await Order.find(queries, null, options).populate([`user`, "products.product"]);
+    const populateOptions = [
+        { path: 'user', select: '_id username image' },
+        { path: 'products.product', select: '_id title price images' }
+      ];
+
+    const orders = await Order.find(queries, null, options).populate(populateOptions);
     return res.status(200).json(orders)
 })
 

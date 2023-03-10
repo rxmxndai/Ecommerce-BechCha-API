@@ -10,7 +10,7 @@ const upload = multer();
 router.post("/", verifyTokenAndAuthorization,  upload.none(), addOrder);
 
 // delete order
-router.delete("/:id", verifyTokenAndAuthorization, deleteOrder);
+router.delete("/:id", verifyTokenAndAdmin, deleteOrder);
 
 // get particular USER'S OREDER from an individual customer
 router.get("/me", verifyTokenAndAuthorization, getOneOrder);
