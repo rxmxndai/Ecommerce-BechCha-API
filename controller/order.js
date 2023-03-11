@@ -17,23 +17,8 @@ const DifferenceInPerc = (a, b) => {
 }
 
 
-// cancel order
-const cancelOrder = tryCatch( async (req, res) => {
-    const orderId = req.params.id;
 
-    const order = await Order.findById(orderId);
 
-    if (!order) throw new customError("No order found!", 404);
-
-    if (order.status === "pending") {
-        order.status = "cancelled";
-        await order.save();
-        return res.status(202).json("Order cancelled.")
-    }
-    else {
-        return res.status(400).json("Order cannot be cancelled now.")
-    }
-})
 
 
 
@@ -60,6 +45,44 @@ const addOrder = tryCatch(async (req, res) => {
 
 
 
+// cancel order
+const cancelOrder = tryCatch( async (req, res) => {
+    const orderId = req.params.id;
+
+    const order = await Order.findById(orderId);
+
+    if (!order) throw new customError("No order found!", 404);
+
+    if (order.status === "pending") {
+        order.status = "cancelled";
+        await order.save();
+        return res.status(202).json("Order cancelled.")
+    }
+    else {
+        return res.status(400).json("Order cannot be cancelled now.")
+    }
+})
+
+
+
+// update order
+const updateOrder = tryCatch( async (req, res) => {
+    const orderId = req.params.id;
+
+    const order = await Order.findById(orderId);
+
+    if (!order) throw new customError("No order found!", 404);
+
+    order.status = req.body.status;
+
+    console.log(order.status);
+
+    await order.save();
+
+    return res.status(200).json("Order updated to ", order.status)
+})
+
+
 
 // delete one order can be done by admin only
 const deleteOrder = tryCatch(async (req, res, next) => {
@@ -77,7 +100,7 @@ const deleteOrder = tryCatch(async (req, res, next) => {
 
 
 // get One user's orderList
-const getOneOrder = tryCatch(async (req, res) => {
+const getUserOrders = tryCatch(async (req, res) => {
     const orders = await Order.find({ user: req.user._id }, null,  { sort : {createdAt: -1} }).populate(["user", "products.product"])
     if (!orders) return res.status(200).json([])
 
@@ -226,8 +249,9 @@ const getUserPercentage = tryCatch( async (req, res) => {
 module.exports = {
     addOrder,
     cancelOrder,
+    updateOrder,
     deleteOrder,
-    getOneOrder,
+    getUserOrders,
     getOneOrderById,
     getAllOrders,
     getSalesAnalytics,

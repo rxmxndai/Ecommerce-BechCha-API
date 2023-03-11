@@ -1,4 +1,4 @@
-const { addOrder, deleteOrder, getAllOrders, getOneOrder, getSalesAnalytics, getOrdersAnalytics, getUserPercentage, getOneOrderById, cancelOrder } = require("../controller/order");
+const { addOrder, deleteOrder, getAllOrders, getSalesAnalytics, getOrdersAnalytics, getUserPercentage, getOneOrderById, cancelOrder, getUserOrders, updateOrder } = require("../controller/order");
 const router = require("express").Router();
 const {  verifyTokenAndAdmin, verifyTokenAndAuthorization }  = require("../middlewares/auth");
 const multer = require('multer');
@@ -13,7 +13,7 @@ router.post("/", verifyTokenAndAuthorization,  upload.none(), addOrder);
 router.delete("/:id", verifyTokenAndAdmin, deleteOrder);
 
 // get particular USER'S OREDER from an individual customer
-router.get("/me", verifyTokenAndAuthorization, getOneOrder);
+router.get("/me", verifyTokenAndAuthorization, getUserOrders);
 
 // get particular order 
 router.get("/:id", verifyTokenAndAuthorization, getOneOrderById);
@@ -24,6 +24,9 @@ router.get("/", verifyTokenAndAdmin, getAllOrders);
 
 // cancel order
 router.post("/cancel/:id", verifyTokenAndAuthorization, cancelOrder)
+
+// updates order
+router.patch("/update/:id", verifyTokenAndAdmin, updateOrder)
 
 
 // get monthly income
