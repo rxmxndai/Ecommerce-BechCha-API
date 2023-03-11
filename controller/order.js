@@ -68,18 +68,22 @@ const cancelOrder = tryCatch( async (req, res) => {
 // update order
 const updateOrder = tryCatch( async (req, res) => {
     const orderId = req.params.id;
+    const status = req.body.status;
+    console.log(req.body);
+
+    if (!status) throw new customError("Invalid status!", 400);
 
     const order = await Order.findById(orderId);
 
     if (!order) throw new customError("No order found!", 404);
 
-    order.status = req.body.status;
+    order.status = status;
 
     console.log(order.status);
 
     await order.save();
 
-    return res.status(200).json("Order updated to ", order.status)
+    return res.status(200).json(`Order updated to ${order.status}` )
 })
 
 

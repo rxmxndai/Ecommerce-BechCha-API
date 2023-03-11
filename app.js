@@ -15,10 +15,13 @@ const credentials = require("./middlewares/credentials")
 var cookieParser = require('cookie-parser')
 var cors = require('cors');
 const corsOptions = require("./config/corsOptions");
+const multer = require("multer");
 
+
+const upload = multer();
 
 const app = express();
-
+app.use(upload.none(""));
 //essentials
 app.use(credentials);
 
