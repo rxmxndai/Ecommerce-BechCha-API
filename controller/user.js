@@ -210,6 +210,8 @@ const updateUser = tryCatch(async (req, res) => {
         user = await oldUser.save();
     }
 
+    
+
     return res.status(201).json(user);
 })
 

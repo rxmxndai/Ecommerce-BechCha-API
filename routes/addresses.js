@@ -1,7 +1,10 @@
 const router = require("express").Router();
 const { verifyTokenAndAuthorization }  = require("../middlewares/auth");
 const { addAddress, updateAddress } = require("../controller/address");
+const multer = require("multer");
 
+
+const upload = multer();
 
 
 // Every route here requires authentication

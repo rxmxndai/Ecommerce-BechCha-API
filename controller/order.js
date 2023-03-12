@@ -1,4 +1,5 @@
 const Order = require("../models/Order");
+const Product = require("../models/Product");
 const tryCatch = require("../utils/tryCatch");
 const { startOfMonth, endOfMonth, subMonths } = require('date-fns');
 const customError = require("../utils/customError");
@@ -13,7 +14,7 @@ const currentMonthStartDate = startOfMonth(now);
 const currentMonthEndDate = endOfMonth(now);
 
 const DifferenceInPerc = (a, b) => {
-    return result = [(a-b) / b] * 100;
+    return result = [(a - b) / b] * 100;
 }
 
 
@@ -26,14 +27,14 @@ const DifferenceInPerc = (a, b) => {
 /// add or place an order
 const addOrder = tryCatch(async (req, res) => {
 
-    const { products,  payable, totalItems } = req.body;
+    const { products, payable, totalItems } = req.body;
 
-    if (!products || products.length <=0 || ! payable || !totalItems ) {
+    if (!products || products.length <= 0 || !payable || !totalItems) {
         throw new customError("Order details insufficient. Provide all details.", 400);
     }
 
-    const values = { 
-        user: req.user._id, 
+    const values = {
+        user: req.user._id,
         payable,
         totalItems,
         products
@@ -46,7 +47,7 @@ const addOrder = tryCatch(async (req, res) => {
 
 
 // cancel order
-const cancelOrder = tryCatch( async (req, res) => {
+const cancelOrder = tryCatch(async (req, res) => {
     const orderId = req.params.id;
 
     const order = await Order.findById(orderId);
@@ -66,10 +67,9 @@ const cancelOrder = tryCatch( async (req, res) => {
 
 
 // update order
-const updateOrder = tryCatch( async (req, res) => {
+const updateOrder = tryCatch(async (req, res) => {
     const orderId = req.params.id;
     const status = req.body.status;
-    console.log(req.body);
 
     if (!status) throw new customError("Invalid status!", 400);
 
@@ -77,13 +77,28 @@ const updateOrder = tryCatch( async (req, res) => {
 
     if (!order) throw new customError("No order found!", 404);
 
+    if (status === "delivered") {
+        order.status = status;
+        await order.save();
+
+        const productsArray = order.products;
+        for (let update of productsArray) {
+            await Product.updateOne(
+                { _id: update.product },
+                {
+                    "$inc": {
+                        quantity: -update.quantity
+                    }
+                }
+            )
+        }
+
+        return res.status(200).json(`Order updated to ${order.status}`)
+    }
+
     order.status = status;
-
-    console.log(order.status);
-
     await order.save();
-
-    return res.status(200).json(`Order updated to ${order.status}` )
+    return res.status(200).json(`Order updated to ${order.status}`)
 })
 
 
@@ -105,7 +120,7 @@ const deleteOrder = tryCatch(async (req, res, next) => {
 
 // get One user's orderList
 const getUserOrders = tryCatch(async (req, res) => {
-    const orders = await Order.find({ user: req.user._id }, null,  { sort : {createdAt: -1} }).populate(["user", "products.product"])
+    const orders = await Order.find({ user: req.user._id }, null, { sort: { createdAt: -1 } }).populate(["user", "products.product"])
     if (!orders) return res.status(200).json([])
 
     return res.status(200).json(orders)
@@ -124,10 +139,10 @@ const getOneOrderById = tryCatch(async (req, res) => {
     let order;
 
     if (isAdmin) {
-        order = await Order.findOne({_id: orderId }).populate(["user", "products.product"])
+        order = await Order.findOne({ _id: orderId }).populate(["user", "products.product"])
     }
-    else { 
-        order = await Order.findOne({_id: orderId, user: userId}).populate(["user", "products.product"])
+    else {
+        order = await Order.findOne({ _id: orderId, user: userId }).populate(["user", "products.product"])
     }
 
     if (!order) return res.status(200).json([])
@@ -146,12 +161,12 @@ const getAllOrders = tryCatch(async (req, res) => {
         options.limit = queryLimit
     }
 
-    options.sort = {createdAt: -1};
+    options.sort = { createdAt: -1 };
 
     const populateOptions = [
         { path: 'user', select: '_id username image' },
         { path: 'products.product', select: '_id title price images' }
-      ];
+    ];
 
     const orders = await Order.find(queries, null, options).populate(populateOptions);
     return res.status(200).json(orders)
@@ -160,7 +175,7 @@ const getAllOrders = tryCatch(async (req, res) => {
 
 
 //Analytics and stats of orders past month to now
-const getSalesAnalytics = tryCatch( async (req, res) => {
+const getSalesAnalytics = tryCatch(async (req, res) => {
     const SalesLastMonth = await Order.find({
         createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate },
         status: "delivered",
@@ -171,7 +186,7 @@ const getSalesAnalytics = tryCatch( async (req, res) => {
         createdAt: { $gte: currentMonthStartDate, $lte: currentMonthEndDate },
         status: "delivered",
     });
-    
+
     if (!SalesThisMonth) throw new customError("No sales this month", 404);
 
     // console.log("Last: ", SalesLastMonth, "\nThis: ", SalesThisMonth);
@@ -183,13 +198,13 @@ const getSalesAnalytics = tryCatch( async (req, res) => {
 
     // console.log(result, totalSalesLastMonth, totalSalesThisMonth);
 
-    return res.status(200).json({result, totalSalesLastMonth, totalSalesThisMonth})
+    return res.status(200).json({ result, totalSalesLastMonth, totalSalesThisMonth })
 })
 
 
 
 
-const getOrdersAnalytics = tryCatch( async (req, res) => {
+const getOrdersAnalytics = tryCatch(async (req, res) => {
 
     // all orders created last nmonth OnlyCount
     const LastMonthCount = await Order.countDocuments({
@@ -213,7 +228,7 @@ const getOrdersAnalytics = tryCatch( async (req, res) => {
     const orderAmountPrev = ordersBefore.reduce((value, ord) => {
         return value + ord.payable;
     }, 0)
-    
+
 
     // orders document list which is paid and this month
     let ordersThis = await Order.find({
@@ -226,17 +241,17 @@ const getOrdersAnalytics = tryCatch( async (req, res) => {
     const orderAmountDifference = DifferenceInPerc(orderAmountNow, orderAmountPrev);
 
     return res.status(200).json({
-        orderCountDifference, 
-        ThisMonthCount, 
-        LastMonthCount, 
-        orderAmountNow, 
-        orderAmountPrev, 
+        orderCountDifference,
+        ThisMonthCount,
+        LastMonthCount,
+        orderAmountNow,
+        orderAmountPrev,
         orderAmountDifference
     })
 })
 
 
-const getUserPercentage = tryCatch( async (req, res) => {
+const getUserPercentage = tryCatch(async (req, res) => {
     const LastMonthCount = await User.countDocuments({
         createdAt: { $gte: lastMonthStartDate, $lte: lastMonthEndDate }
     });
@@ -247,7 +262,7 @@ const getUserPercentage = tryCatch( async (req, res) => {
 
     const userCountDifference = DifferenceInPerc(ThisMonthCount, LastMonthCount);
 
-    return res.status(200).json({LastMonthCount, ThisMonthCount, userCountDifference})
+    return res.status(200).json({ LastMonthCount, ThisMonthCount, userCountDifference })
 })
 
 module.exports = {
