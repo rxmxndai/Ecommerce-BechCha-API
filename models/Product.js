@@ -40,6 +40,9 @@ const productSchema = new mongoose.Schema( {
             type: Number, 
             required: true,
         }, 
+        sold: {
+            type: Number,
+        },
         reviews: [
             { type: mongoose.Schema.Types.ObjectId, ref: "Review" }
         ],
