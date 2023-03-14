@@ -17,7 +17,7 @@ router.get("/", verifyTokenAndAuthorization, getMyCart);
 router.delete("/", verifyTokenAndAuthorization, deleteMyCart);
 
 // update cart
-router.patch( "/", verifyTokenAndAuthorization, updateCart)
+router.patch( "/", verifyTokenAndAuthorization, upload.none(), updateCart)
 
 // delete product from cart
 router.delete("/:productId", verifyTokenAndAuthorization, deleteProductFromCart)

@@ -86,6 +86,8 @@ const updateCart = tryCatch(async (req, res) => {
     let { product, type, max, currentPrice } = req.body;
     max = Number(max);
 
+    console.log(product, type);
+
     if (!product || !type) throw new customError("Needs a cart item and type!", 400);
 
     // find user's cart

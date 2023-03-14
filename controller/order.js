@@ -87,11 +87,9 @@ const updateOrder = tryCatch(async (req, res) => {
                 { _id: update.product },
                 {
                     "$inc": {
-                        quantity: -update.quantity
+                        quantity: -update.quantity,
+                        sold: +update.quantity,
                     },
-                    "$set": {
-                        sold: +1,
-                    }
                 }
             )
         }
