@@ -10,11 +10,12 @@ const cloudinary = require("cloudinary").v2;
 // adding new products
 const addProduct = tryCatch(async (req, res) => {
 
-    const { title, description, category, price, quantity } = req.body;
+    const { title, description, category, price, quantity, brand } = req.body;
 
     const productValue = {
         title,
         description,
+        brand,
         category,
         quantity,
         price,
@@ -62,8 +63,9 @@ const updateProduct = tryCatch(async (req, res) => {
     const prodID = req.params.id
     if (!prodID) return res.status(400).json({message: "No product selected!"})
 
-    const allowedUpdates = ["title", "description", "category", "specification", "price", "quantity"];
+    const allowedUpdates = ["title", "description", "category", "brand", "specification", "price", "quantity", "review"];
     const updatesSent = Object.keys(req.body);
+
 
     const isValid = updatesSent.every(update => allowedUpdates.includes(update))
 
@@ -72,6 +74,7 @@ const updateProduct = tryCatch(async (req, res) => {
     const productP = await Product.findById(prodID);
 
     updatesSent.forEach(update => {
+        console.log(update);
         productP[update] = req.body[update];
     })
 
