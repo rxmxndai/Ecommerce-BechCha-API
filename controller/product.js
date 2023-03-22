@@ -154,6 +154,7 @@ const getAllProducts = tryCatch(async (req, res) => {
 
     let products;
     // query
+    const querySearch = req.query.search
     const querySort = req.query.sort
     const limitPrice = parseInt(req.query.limitprice)
     const queryLimit = parseInt(req.query.limit);
@@ -192,9 +193,15 @@ const getAllProducts = tryCatch(async (req, res) => {
     }
 
 
-    // sort ({parameter: asc or desc})
-    // limit => pagination (limit(how many))
-    // console.log(options, queries);
+    if (querySearch) {
+        queries.$or = [
+            { title: new RegExp(querySearch, "i") },
+            { brand: new RegExp(querySearch, "i") } 
+          ];
+    }
+
+
+
     products = await Product.find(queries, null, options);
 
     if (!products) throw new customError("No record found", 404);
