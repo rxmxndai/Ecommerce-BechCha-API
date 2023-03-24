@@ -1,28 +1,33 @@
-const Address = require("../models/Address");
+const Address = require("../models/Shipping");
 const customError = require("../utils/customError");
 const tryCatch = require("../utils/tryCatch")
 
 // ADD addresses for AUTHENTICATED USERS
-const addAddress = tryCatch(async (req, res) => {
-    const { billingAddress, shippingAddress } = req.body;
+const addDetails = tryCatch(async (req, res) => {
+    const { billingAddress, shippingAddress, recipient, contacts } = req.body;
 
     if (!billingAddress || !shippingAddress) throw new customError("Address is not definde!", 400);
 
-    const addressData = new Address({
+
+    if (!recipient || !contacts) throw new customError("UserInfo is not definde!", 400);
+
+    const ShippingData = new Address({
         user: req.user._id,
         billingAddress,
-        shippingAddress
+        shippingAddress,
+        recepient: recipient,
+        contacts
     })
 
-    await addressData.save();
+    await ShippingData.save();
 
-    return res.status(201).json({ address: addressData });
+    return res.status(201).json({ ShippingData });
 })
 
 
 
 // updates user's address for courier
-const updateAddress = tryCatch(async (req, res) => {
+const updateDetails= tryCatch(async (req, res) => {
 
     const address = await Address.findOne({ user: req.user._id })
 
@@ -51,6 +56,6 @@ const updateAddress = tryCatch(async (req, res) => {
 
 
 module.exports = {
-    addAddress,
-    updateAddress
+    addDetails,
+    updateDetails
 }

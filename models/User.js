@@ -25,9 +25,9 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    courierAddress: {
+    shipping: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Address",
+        ref: "Shipping",
     },
     image: {
         public_id: String,

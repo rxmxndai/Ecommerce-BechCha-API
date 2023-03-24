@@ -14,6 +14,14 @@ const addressSchema = new mongoose.Schema({
     billingAddress: {
         type: String,
         required: true,
+    },
+    recepient: {
+        type: String,
+        required: true
+    },
+    contacts: {
+        type: Number,
+        required: true
     }
 })
 
