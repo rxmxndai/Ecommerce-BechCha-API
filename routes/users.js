@@ -10,7 +10,8 @@ const {
     getOneUser,
     getAllUser, 
     getStatsUser,
-    resendOTP
+    resendOTP,
+    getUsersShippingDetails
 } = require("../controller/user")
 
 const multer = require("multer");
@@ -72,6 +73,8 @@ router.get("/stats", verifyTokenAndAdmin, getStatsUser);
 
 
 // refresh token
-router.get("/refresh", handleRefreshToken);
+router.get("/shipping/:id", verifyTokenAndAuthorization, getUsersShippingDetails);
+
+
 
 module.exports = router

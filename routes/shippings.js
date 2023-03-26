@@ -9,8 +9,9 @@ const upload = multer()
 // create address of an autheticated user
 router.post("/", verifyTokenAndAuthorization, upload.none(''), addDetails);
 
-// get particular cart
+// update particular shipping details
 router.patch("/", verifyTokenAndAuthorization, updateDetails);
+
 
 
 module.exports = router

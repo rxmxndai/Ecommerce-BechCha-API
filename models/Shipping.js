@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 
 
-const addressSchema = new mongoose.Schema({
+const shippingSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
+        required: true,
+        unique: true
     },
     shippingAddress: {
         type: String,
@@ -15,7 +16,7 @@ const addressSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    recepient: {
+    recipient: {
         type: String,
         required: true
     },
@@ -27,4 +28,4 @@ const addressSchema = new mongoose.Schema({
 
 
 
-module.exports = mongoose.model('Address', addressSchema);
+module.exports = mongoose.model('Shipping', shippingSchema);

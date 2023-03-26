@@ -6,6 +6,7 @@ const { JOIuserSchemaValidate } = require("../middlewares/JoiValidator")
 const customError = require("../utils/customError");
 const { cookieOptions } = require("../middlewares/refreshTokenController");
 const { getDataUri } = require("../utils/dataURI");
+const Shipping = require("../models/Shipping");
 const cloudinary = require("cloudinary").v2;
 
 
@@ -231,7 +232,7 @@ const deleteUser = tryCatch(async (req, res) => {
 
 
 const getOneUser = tryCatch(async (req, res) => {
-    const user = await User.findById(req.params.id)
+    const user = await User.findById(req.params.id).populate("shipping")
 
     if (!user) throw new customError("No USER record found", 404)
 
@@ -254,6 +255,15 @@ const getAllUser = tryCatch(async (req, res) => {
     if (!users) throw new customError("No USER record found", 404)
 
     return res.status(200).json(users)
+})
+
+
+const getUsersShippingDetails = tryCatch(async (req, res) => {
+    const ship = await Shipping.findOne({user: req.params.id})
+
+    if (!ship) throw new customError("No details", 404);
+
+    return res.status(200).json(ship);
 })
 
 
@@ -297,5 +307,6 @@ module.exports = {
     deleteUser,
     getOneUser,
     getAllUser,
-    getStatsUser
+    getStatsUser,
+    getUsersShippingDetails
 }
