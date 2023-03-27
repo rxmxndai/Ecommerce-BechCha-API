@@ -72,8 +72,13 @@ router.get("/find", verifyTokenAndAdmin, getAllUser);
 router.get("/stats", verifyTokenAndAdmin, getStatsUser);
 
 
-// refresh token
+// get shipping details
 router.get("/shipping/:id", verifyTokenAndAuthorization, getUsersShippingDetails);
+
+
+// refresh token
+router.get("/refresh", handleRefreshToken);
+
 
 
 
