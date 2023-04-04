@@ -1,4 +1,5 @@
 const Shipping = require("../models/Shipping");
+const User = require("../models/User");
 const customError = require("../utils/customError");
 const tryCatch = require("../utils/tryCatch")
 
@@ -30,6 +31,10 @@ const addDetails = tryCatch(async (req, res) => {
 
     await shippingDetails.save()
 
+    const user = await User.findByIdAndUpdate({ _id: shippingDetails.user }, {
+        $set: { shipping: shippingDetails._id }
+    })
+
     return res.status(201).json({ shippingDetails });
 })
 
@@ -58,6 +63,11 @@ const updateDetails= tryCatch(async (req, res) => {
     const shipping = await Shipping.findOneAndUpdate({ user: req.user._id }, {
         '$set': shippingUpdates
     }, { new: true })
+
+    await User.findByIdAndUpdate({ _id: shipping.user }, {
+        $set: { shipping: shipping._id }},
+        { new: true }
+    )
 
     return res.status(201).json({ shipping });
 })

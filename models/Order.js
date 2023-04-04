@@ -25,6 +25,8 @@ const orderSchema = new mongoose.Schema({
   totalItems: { type: Number, required: true },
   payable: { type: Number, required: true },
   status: { type: String, default: "pending" },
+  shipping: {type: String, required: true},
+  billing: {type: String, required: true},
   deliveredAt: {
     type: Date
   },
