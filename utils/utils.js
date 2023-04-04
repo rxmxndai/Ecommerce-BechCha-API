@@ -71,6 +71,30 @@ const sendOTPverificationEmail = tryCatch(async ({ userId, email }, res, next) =
 })
 
 
+const sendInvoiceEmail = tryCatch( async (req, res) => {
+    // mail options
+    const mailOptions = {
+        from: process.env.MAIL_EMAIL,
+        to: email,
+        subject: "Verify your Email",
+        html: `
+            <div style="max-width: 90%; margin: auto; padding-top: 20px" >
+                <h2>Welcome to the Bech-cha Online.</h2>
+                <h4>Enter the OTP : <b>  </b> in the app to verify your email address.</h4>
+                <p> This code expires in 10 minutes </p>
+             </div>
+            `,
+    };
+
+    // send verification mail
+    const result = await transporter.sendMail(mailOptions);
+
+    if (!result) return next(undefined, "Email not sent");
+
+    return next( `OTP sent at email: ${email}`)
+
+} )
+
 
 
 
@@ -93,6 +117,7 @@ async function isEmailValid(email) {
 module.exports = {
     hashPass,
     decryptHashedPass,
-    isEmailValid,
-    sendOTPverificationEmail
+    // isEmailValid,
+    sendOTPverificationEmail,
+    sendInvoiceEmail
 }
