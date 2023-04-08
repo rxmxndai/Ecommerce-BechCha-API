@@ -4,6 +4,7 @@ const tryCatch = require("../utils/tryCatch");
 const { startOfMonth, endOfMonth, subMonths } = require('date-fns');
 const customError = require("../utils/customError");
 const User = require("../models/User");
+const { sendInvoiceEmail } = require("../utils/utils");
 
 
 
@@ -19,6 +20,17 @@ const DifferenceInPerc = (a, b) => {
 
 
 
+const sendInvoiceOfOrder = tryCatch(async (req, res) => {
+
+    console.log(req.body.invoice);
+
+    await sendInvoiceEmail(req, res, (message, err) => {
+        if (err) return res.status(400).json({ message: err })
+        else {
+            return res.status(201).json({ message });
+        }
+    })
+})
 
 
 
@@ -31,7 +43,8 @@ const addOrder = tryCatch(async (req, res) => {
 
     const user = await User.findOne({_id : req.user._id}).populate({ path: 'shipping' })
 
-    if (!products || products.length <= 0 || !payable || !totalItems) {
+
+    if (!products || products.length <= 0 || !payable || !totalItems ) {
         throw new customError("Order details insufficient. Provide all details.", 400);
     }
 
@@ -40,6 +53,7 @@ const addOrder = tryCatch(async (req, res) => {
         payable,
         totalItems,
         products,
+        recipient: user.shipping.recipient,
         shipping: user.shipping.shippingAddress,
         billing: user.shipping.billingAddress
     };
@@ -284,4 +298,5 @@ module.exports = {
     getSalesAnalytics,
     getOrdersAnalytics,
     getUserPercentage,
+    sendInvoiceOfOrder
 }

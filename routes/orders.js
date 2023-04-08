@@ -1,7 +1,8 @@
-const { addOrder, deleteOrder, getAllOrders, getSalesAnalytics, getOrdersAnalytics, getUserPercentage, getOneOrderById, cancelOrder, getUserOrders, updateOrder } = require("../controller/order");
+const { addOrder, deleteOrder, getAllOrders, getSalesAnalytics, getOrdersAnalytics, getUserPercentage, getOneOrderById, cancelOrder, getUserOrders, updateOrder, sendInvoiceOfOrder } = require("../controller/order");
 const router = require("express").Router();
 const {  verifyTokenAndAdmin, verifyTokenAndAuthorization }  = require("../middlewares/auth");
 const multer = require("multer");
+const { sendInvoiceEmail } = require("../utils/utils");
 
 
 const upload = multer();
@@ -41,5 +42,8 @@ router.get("/orders/analytics", verifyTokenAndAdmin, getOrdersAnalytics);
 // get userCount Stats
 router.get("/users/analytics", verifyTokenAndAdmin, getUserPercentage)
 
+
+// send invoice
+router.post("/invoice", upload.none(), sendInvoiceOfOrder);
 
 module.exports = router
