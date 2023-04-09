@@ -4,7 +4,7 @@ const tryCatch = require("../utils/tryCatch");
 const { startOfMonth, endOfMonth, subMonths } = require('date-fns');
 const customError = require("../utils/customError");
 const User = require("../models/User");
-const { sendInvoiceEmail } = require("../utils/utils");
+const { sendInvoiceEmail, sendOrderSuccessfulEmail, sendOrderCancellation } = require("../utils/utils");
 
 
 
@@ -19,7 +19,7 @@ const DifferenceInPerc = (a, b) => {
 }
 
 
-
+// invoice send
 const sendInvoiceOfOrder = tryCatch(async (req, res) => {
 
     await sendInvoiceEmail(req, res, (message, err) => {
@@ -39,6 +39,9 @@ const addOrder = tryCatch(async (req, res) => {
 
     const { products, payable, totalItems } = req.body;
 
+    console.log(products);
+
+    // find the user who requested
     const user = await User.findOne({_id : req.user._id}).populate({ path: 'shipping' })
 
 
@@ -60,7 +63,20 @@ const addOrder = tryCatch(async (req, res) => {
 
     if (!order) throw new customError("Order info insufficient!", 400);
 
-    return res.status(201).json(order);
+    req.order = order
+
+    await sendOrderSuccessfulEmail(req, res, (err, payload) => {
+        if (err) {
+            throw new customError({message: err})
+        }
+
+        else {
+            return res.status(201).json({order, message: payload});
+        }
+    
+    })
+
+    
 })
 
 
@@ -73,14 +89,25 @@ const cancelOrder = tryCatch(async (req, res) => {
 
     if (!order) throw new customError("No order found!", 404);
 
-    if (order.status === "pending") {
-        order.status = "cancelled";
-        await order.save();
-        return res.status(202).json("Order cancelled.")
-    }
-    else {
-        return res.status(400).json("Order cannot be cancelled now.")
-    }
+
+
+    if (order.status !== "pending") return res.status(400).json("Order cannot be cancelled now.")
+
+
+    order.status = "cancelled";
+    const ord = await order.save();
+
+    req.order = ord
+    await sendOrderCancellation(req, res, (err, payload) => {
+        if (err) {
+            throw new customError({message: err})
+        }
+
+        else {
+            return res.status(200).json({order, message: payload});
+        }
+    })
+
 })
 
 
