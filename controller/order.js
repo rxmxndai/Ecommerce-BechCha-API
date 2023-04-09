@@ -22,8 +22,6 @@ const DifferenceInPerc = (a, b) => {
 
 const sendInvoiceOfOrder = tryCatch(async (req, res) => {
 
-    console.log(req.body.invoice);
-
     await sendInvoiceEmail(req, res, (message, err) => {
         if (err) return res.status(400).json({ message: err })
         else {

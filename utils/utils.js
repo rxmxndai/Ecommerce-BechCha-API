@@ -61,33 +61,52 @@ const sendOTPverificationEmail = tryCatch(async ({ userId, email }, res, next) =
     await newOTPverification.save();
 
     console.log(OTP);
-    
+
     // send verification mail
     const result = await transporter.sendMail(mailOptions);
 
     if (!result) return next(undefined, "Email not sent");
 
-    return next( `OTP sent at email: ${email}`)
+    return next(`OTP sent at email: ${email}`)
 })
 
 
-const sendInvoiceEmail = tryCatch( async (req, res) => {
+const sendInvoiceEmail = tryCatch(async (req, res) => {
+
+    const inv = req.body.invoice;
+
+    if (!inv) return new customError("No invoice data sent!", 400)
+
+    const pdfBuffer = Buffer.from(inv, 'base64');// Decode base64 data
+
     // mail options
     const mailOptions = {
         from: process.env.MAIL_EMAIL,
         to: "np03cs4s210142@heraldcollege.edu.np",
         subject: "Invoice",
-        html: req.body.invoice
+        html: "Invoice for your order",
+        attachments: [{
+            filename: 'invoice.pdf',
+            content: pdfBuffer.toString('base64'), // Use the decoded PDF data as attachment content
+            contentType: 'application/pdf',
+            encoding: 'base64' // Specify the encoding type as 'base64'
+          }]
     };
 
-    // send verification mail
-    const result = await transporter.sendMail(mailOptions);
 
-    if (!result) return next(undefined, "Email not sent");
+    // Send email with attachment
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error(error);
+            return next(undefined, "Email not sent");
+        } else {
+            console.log("Email sent: " + info.response);
+            return res.status(200).json("Invoice sent");
+        }
+    });
 
-    return next( `Invoice sent`)
+})
 
-} )
 
 
 
