@@ -3,34 +3,35 @@ const OTPmodel = require("../models/OTPverification")
 var bcrypt = require('bcryptjs');
 const tryCatch = require("./tryCatch");
 const customError = require("./customError");
+const { default: intlFormat } = require("date-fns/intlFormat");
 
 
 
 
 // nodemailer transporter
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    service: "gmail",
-    auth: {
-        user: process.env.MAIL_EMAIL,
-        pass: process.env.MAIL_PASSWORD,
-    }
+  host: "smtp.gmail.com",
+  service: "gmail",
+  auth: {
+    user: process.env.MAIL_EMAIL,
+    pass: process.env.MAIL_PASSWORD,
+  }
 });
 
 
 // hash the password before saving
 const hashPass = async (password) => {
-    const hashedPassword = await bcrypt.hash(password, 10)
-    return hashedPassword;
+  const hashedPassword = await bcrypt.hash(password, 10)
+  return hashedPassword;
 }
 
 /// decrypt the hashed pass
 const decryptHashedPass = async ({ password, hashedPassword }) => {
-    if (!password || !hashedPassword) {
-        return false;
-    }
-    const passed = await bcrypt.compare(password, hashedPassword)
-    return passed;
+  if (!password || !hashedPassword) {
+    return false;
+  }
+  const passed = await bcrypt.compare(password, hashedPassword)
+  return passed;
 }
 
 
@@ -38,43 +39,43 @@ const decryptHashedPass = async ({ password, hashedPassword }) => {
 
 // send otp for user verificatioon or resend
 const sendOTPverificationEmail = tryCatch(async ({ userId, email }, res, next) => {
-    let OTP = `${Math.floor(1000 + Math.random() * 9000)}`;
-    OTP = OTP.toString();
-    // mail options
-    const mailOptions = {
-        from: process.env.MAIL_EMAIL,
-        to: email,
-        subject: "Verify your Email",
-        html: `
+  let OTP = `${Math.floor(1000 + Math.random() * 9000)}`;
+  OTP = OTP.toString();
+  // mail options
+  const mailOptions = {
+    from: process.env.MAIL_EMAIL,
+    to: email,
+    subject: "Verify your Email",
+    html: `
             <div style="max-width: 90%; margin: auto; padding-top: 20px" >
                 <h2>Welcome to the Bech-cha Online.</h2>
                 <h4>Enter the OTP : <b> ${OTP} </b> in the app to verify your email address.</h4>
                 <p> This code expires in 10 minutes </p>
              </div>
             `,
-    };
+  };
 
 
-    // hash the otp
-    const hashedOTP = await hashPass(OTP)
-    const newOTPverification = new OTPmodel({
-        userId,
-        email,
-        otp: hashedOTP,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + 600000 // 10 min in milliseconds
-    })
-    // otp record save in db
-    await newOTPverification.save();
+  // hash the otp
+  const hashedOTP = await hashPass(OTP)
+  const newOTPverification = new OTPmodel({
+    userId,
+    email,
+    otp: hashedOTP,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 600000 // 10 min in milliseconds
+  })
+  // otp record save in db
+  await newOTPverification.save();
 
-    console.log(OTP);
+  console.log(OTP);
 
-    // send verification mail
-    const result = await transporter.sendMail(mailOptions);
+  // send verification mail
+  const result = await transporter.sendMail(mailOptions);
 
-    if (!result) return next(undefined, "Email not sent");
+  if (!result) return next(undefined, "Email not sent");
 
-    return next(`OTP sent at email: ${email}`)
+  return next(`OTP sent at email: ${email}`)
 })
 
 
@@ -83,37 +84,135 @@ const sendOTPverificationEmail = tryCatch(async ({ userId, email }, res, next) =
 // send actual invoice as PDF
 const sendInvoiceEmail = tryCatch(async (req, res) => {
 
-    const inv = req.body.invoice;
-
-    if (!inv) return new customError("No invoice data sent!", 400)
-
-    const pdfBuffer = Buffer.from(inv, 'base64');// Decode base64 data
-
-    // mail options
-    const mailOptions = {
-        from: process.env.MAIL_EMAIL,
-        to: "np03cs4s210142@heraldcollege.edu.np",
-        subject: "Invoice",
-        html: "Invoice for your order",
-        attachments: [{
-            filename: 'invoice.pdf',
-            content: pdfBuffer.toString('base64'), // Use the decoded PDF data as attachment content
-            contentType: 'application/pdf',
-            encoding: 'base64' // Specify the encoding type as 'base64'
-        }]
-    };
 
 
-    // Send email with attachment
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.error(error);
-            return next(undefined, "Email not sent");
-        } else {
-            console.log("Email sent: " + info.response);
-            return res.status(200).json("Invoice sent");
-        }
-    });
+  const {order} = req.body;
+
+
+  const date = new Date(order.createdAt);
+  // Extract the date part
+  const formattedDate = date.toISOString().split("T")[0];
+  console.log(formattedDate);
+
+
+  // mail options
+  const mailOptions = {
+    from: process.env.MAIL_EMAIL,
+    to: "eivorx123@gmail.com",
+    subject: "Invoice",
+    html: `
+    <!DOCTYPE html>
+    <html>
+    
+    <head>
+        <title>Invoice</title>
+    </head>
+    
+    <body style="font-family: Arial, sans-serif; border: 1px solid black;">
+    
+        <h1 style="padding: 10px; color: gray;"> Invoice of your order </h1>
+    
+        <div style="padding: 30px; background-color: #0171b6; color: white;">
+            <h1 style="color: {color};">Invoice</h1>
+        </div>
+    
+        <div style="padding: 20px;">
+    
+            <div style="display: flex; margin-bottom: 15px; font-size: 16px">
+                <span style="width: 10%">Recipient</span>
+                <span style="">${order.recipient}</span>
+            </div>
+            <div style="display: flex;  margin-bottom: 15px; font-size: 16px">
+                <span style="width: 10%">Ship to</span>
+                <span style="">${order.shipping}</span>
+            </div>
+            <div style="display: flex;  margin-bottom: 15px; font-size: 16px">
+                <span style="width: 10%">Date</span>
+                <span style=""> ${formattedDate} </span>
+            </div>
+            <div style="display: flex;  margin-bottom: 15px; font-size: 16px">
+                <span style="width: 10%">OrderID</span>
+                <span style="">${order._id}</span>
+            </div>
+    
+            <hr style="border: none; height: 1px; margin: 5px; background-color: #0171b6;" />
+    
+            <h1 style=" color: gray;">Order List</h1>
+    
+            <div style="margin-top: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="flex: 3; border: 1px solid #000; padding: 8px; text-align: left;">Product</th>
+                            <th style="flex: 2; border: 1px solid #000; padding: 8px; text-align: left;">Quantity</th>
+                            <th style="flex: 1; border: 1px solid #000; padding: 8px; text-align: left;">Price</th>
+                            <th style="flex: 1; border: 1px solid #000; padding: 8px; text-align: left;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       ${order?.products?.map((prod) => {
+                        return (
+                          `<tr>
+                          <td style="flex: 3; border: 1px solid #000; padding: 8px; text-align: left;">${prod.product.title}</td>
+                          <td style="flex: 2; border: 1px solid #000; padding: 8px; text-align: left;">${prod.quantity}</td>
+                          <td style="flex: 1; border: 1px solid #000; padding: 8px; text-align: left;">${prod.price}
+                          </td>
+                          <td style="flex: 1; border: 1px solid #000; padding: 8px; text-align: left;">${prod.price * prod.quantity}
+                          </td>
+                      </tr>`
+                        )
+                       })}
+                    </tbody>
+                </table>
+            </div>
+            <div style="display: flex;  justify-content: flex-end; margin-top: 50px; font-size: 16px; padding: 5px 0px;">
+                <span style="width: 20%">Subtotal</span>
+                <span style="">RS ${order.payable}</span>
+            </div>
+            <div style="display: flex;  justify-content: flex-end; font-size: 16px; padding: 5px 0px;">
+                <span style="width: 20%">Tax</span>
+                <span style="">13%</span>
+            </div>
+            <div style="display: flex; justify-content: flex-end;  font-size: 16px; padding: 5px 0px;">
+                <span style="width: 20%">Shipping</span>
+                <span style="">RS 200</span>
+            </div>
+            <div style="display: flex; justify-content: flex-end; padding: 5px 0px; font-size: 16px; color: #0171b6;">
+                <h3 style="width: 20%">Total</h3>
+                <h3 style=""> NPR ${order.payable}</h3>
+            </div>
+            <hr style="border: none; height: 1px; margin: 10px; background-color: #0171b6;" />
+            <div style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <div style="width: 150px; overflow: hidden;">
+                        <img style="width: 120px; object-fit: contain; "
+                            src='https://github.com/rxmxndai/rxmxndai-assets/blob/main/assets/Bech_Cha.png?raw=true' />
+                    </div>
+                </div>
+            </div>
+    
+    
+            <h3 style="color: gray;"> Note: You can download the receipt from order details tab on Bech-Cha Online site.
+            </h3>
+    
+        </div>
+    </body>
+    
+    </html>
+        `
+  };
+
+
+   // Send email with attachment
+   transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error(error);
+      return next("Email not sent", undefined);
+    } else {
+      console.log("Email sent: " + info.response);
+      return next(undefined, "Invoice sent");
+    }
+  })
 
 })
 
@@ -121,16 +220,16 @@ const sendInvoiceEmail = tryCatch(async (req, res) => {
 // send order created email
 const sendOrderSuccessfulEmail = tryCatch(async (req, res, next) => {
 
-    const order = req.order
-    // const email = req.user.email;
-    const email = "eivorx123@gmail.com";
+  const order = req.order
+  // const email = req.user.email;
+  const email = "eivorx123@gmail.com";
 
-    // mail options
-    const mailOptions = {
-        from: process.env.MAIL_EMAIL,
-        to: email,
-        subject: "Bech-Cha Order Successful!",
-        html: `
+  // mail options
+  const mailOptions = {
+    from: process.env.MAIL_EMAIL,
+    to: email,
+    subject: "Bech-Cha Order Successful!",
+    html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -181,13 +280,13 @@ const sendOrderSuccessfulEmail = tryCatch(async (req, res, next) => {
                     <th>Price</th>
                 </tr>
                 ${order.products.map((product) => {
-            return `
+      return `
                     <tr>
                         <td>${product.product}</td>
                         <td>${product.quantity}</td>
                         <td>${product.price}</td>
                     </tr>`
-        })}
+    })}
 
                 <tr>
                     <th>Total Amount:</th>
@@ -201,18 +300,18 @@ const sendOrderSuccessfulEmail = tryCatch(async (req, res, next) => {
         </body>
         </html>
             `,
-    };
+  };
 
-    // Send email with attachment
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.error(error);
-            return next("Email not sent", undefined);
-        } else {
-            console.log("Email sent: " + info.response);
-            return next(undefined, "Invoice sent");
-        }
-    })
+  // Send email with attachment
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error(error);
+      return next("Email not sent", undefined);
+    } else {
+      console.log("Email sent: " + info.response);
+      return next(undefined, "Invoice sent");
+    }
+  })
 })
 
 
@@ -222,15 +321,15 @@ const sendOrderSuccessfulEmail = tryCatch(async (req, res, next) => {
 
 
 const sendOrderCancellation = tryCatch(async (req, res, next) => {
-    const order = req.order
-    const email = "eivorx123@gmail.com";
+  const order = req.order
+  const email = "eivorx123@gmail.com";
 
-    // mail options
-    const mailOptions = {
-        from: process.env.MAIL_EMAIL,
-        to: email,
-        subject: "Order Cancelled Notice",
-        html: `
+  // mail options
+  const mailOptions = {
+    from: process.env.MAIL_EMAIL,
+    to: email,
+    subject: "Order Cancelled Notice",
+    html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -281,14 +380,14 @@ const sendOrderCancellation = tryCatch(async (req, res, next) => {
             </tr>
             <tbody>
               ${order.products.map(({ product, price, quantity }) => {
-            return `
+      return `
                   <tr>
                     <td>${product}</td>
                     <td>${price}</td>
                     <td>${quantity}</td>
                   </tr>
                 `;
-        })}
+    })}
             </tbody>
             <tr>
               <th>Total Amount:</th>
@@ -308,25 +407,25 @@ const sendOrderCancellation = tryCatch(async (req, res, next) => {
         
         `
 
-    };
+  };
 
-   // Send email with attachment
-   transporter.sendMail(mailOptions, (error, info) => {
+  // Send email with attachment
+  transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-        console.error(error);
-        return next("Email not sent", undefined);
+      console.error(error);
+      return next("Email not sent", undefined);
     } else {
-        console.log("Email sent: " + info.response);
-        return next(undefined, "Cancellation email sent");
+      console.log("Email sent: " + info.response);
+      return next(undefined, "Cancellation email sent");
     }
-})
+  })
 })
 
 module.exports = {
-    hashPass,
-    decryptHashedPass,
-    sendOTPverificationEmail,
-    sendInvoiceEmail,
-    sendOrderSuccessfulEmail,
-    sendOrderCancellation
+  hashPass,
+  decryptHashedPass,
+  sendOTPverificationEmail,
+  sendInvoiceEmail,
+  sendOrderSuccessfulEmail,
+  sendOrderCancellation
 }

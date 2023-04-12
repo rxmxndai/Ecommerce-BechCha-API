@@ -1,0 +1,98 @@
+<!-- <!DOCTYPE html>
+<html>
+
+<head>
+    <title>Invoice</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; border: 1px solid black;">
+
+    <h1 style="padding: 10px; color: gray;"> Invoice of your order </h1>
+
+    <div style="padding: 30px; background-color: #0171b6; color: white;">
+        <h1 style="color: {color};">Invoice</h1>
+    </div>
+
+    <div style="padding: 20px;">
+
+        <div style="display: flex; margin-bottom: 15px; font-size: 16px">
+            <span style="width: 10%">Recipient</span>
+            <span style="">${order.recipient}</span>
+        </div>
+        <div style="display: flex;  margin-bottom: 15px; font-size: 16px">
+            <span style="width: 10%">Ship to</span>
+            <span style="">${order.shipping}</span>
+        </div>
+        <div style="display: flex;  margin-bottom: 15px; font-size: 16px">
+            <span style="width: 10%">Date</span>
+            <span style=""> ${order.createdAt.toISOString().split("T")[0]} </span>
+        </div>
+        <div style="display: flex;  margin-bottom: 15px; font-size: 16px">
+            <span style="width: 10%">OrderID</span>
+            <span style="">${order._id}</span>
+        </div>
+
+        <hr style="border: none; height: 1px; margin: 5px; background-color: #0171b6;" />
+
+        <h1 style=" color: gray;">Order List</h1>
+
+        <div style="margin-top: 20px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="flex: 3; border: 1px solid #000; padding: 8px; text-align: left;">Product</th>
+                        <th style="flex: 2; border: 1px solid #000; padding: 8px; text-align: left;">Quantity</th>
+                        <th style="flex: 1; border: 1px solid #000; padding: 8px; text-align: left;">Price</th>
+                        <th style="flex: 1; border: 1px solid #000; padding: 8px; text-align: left;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                   ${order.products.map((prod) => {
+                    return (
+                      `<tr>
+                      <td style="flex: 3; border: 1px solid #000; padding: 8px; text-align: left;">{prod.product.title}</td>
+                      <td style="flex: 2; border: 1px solid #000; padding: 8px; text-align: left;">{prod.quantity}</td>
+                      <td style="flex: 1; border: 1px solid #000; padding: 8px; text-align: left;">{prod.price}
+                      </td>
+                      <td style="flex: 1; border: 1px solid #000; padding: 8px; text-align: left;">{prod.price * prod.quantity}
+                      </td>
+                  </tr>`
+                    )
+                   })}
+                </tbody>
+            </table>
+        </div>
+        <div style="display: flex;  justify-content: flex-end; margin-top: 50px; font-size: 16px; padding: 5px 0px;">
+            <span style="width: 20%">Subtotal</span>
+            <span style="">{subtotal}</span>
+        </div>
+        <div style="display: flex;  justify-content: flex-end; font-size: 16px; padding: 5px 0px;">
+            <span style="width: 20%">Tax</span>
+            <span style="">{tax}</span>
+        </div>
+        <div style="display: flex; justify-content: flex-end;  font-size: 16px; padding: 5px 0px;">
+            <span style="width: 20%">Shipping</span>
+            <span style="">{shipping}</span>
+        </div>
+        <div style="display: flex; justify-content: flex-end; padding: 5px 0px; font-size: 16px; color: #0171b6;">
+            <h3 style="width: 20%">Total</h3>
+            <h3 style="">Total</h3>
+        </div>
+        <hr style="border: none; height: 1px; margin: 10px; background-color: #0171b6;" />
+        <div style="margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between;">
+                <div style="width: 150px; overflow: hidden;">
+                    <img style="width: 120px; object-fit: contain; "
+                        src='https://github.com/rxmxndai/rxmxndai-assets/blob/main/assets/Bech_Cha.png?raw=true' />
+                </div>
+            </div>
+        </div>
+
+
+        <h3 style="color: gray;"> Note: You can download the receipt from order details tab on Bech-Cha Online site.
+        </h3>
+
+    </div>
+</body>
+
+</html> -->

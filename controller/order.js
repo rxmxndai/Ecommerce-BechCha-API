@@ -22,10 +22,10 @@ const DifferenceInPerc = (a, b) => {
 // invoice send
 const sendInvoiceOfOrder = tryCatch(async (req, res) => {
 
-    await sendInvoiceEmail(req, res, (message, err) => {
+    await sendInvoiceEmail(req, res, (err, message) => {
         if (err) return res.status(400).json({ message: err })
         else {
-            return res.status(201).json({ message });
+            return res.status(200).json({ message });
         }
     })
 })
@@ -38,8 +38,6 @@ const sendInvoiceOfOrder = tryCatch(async (req, res) => {
 const addOrder = tryCatch(async (req, res) => {
 
     const { products, payable, totalItems } = req.body;
-
-    console.log(products);
 
     // find the user who requested
     const user = await User.findOne({_id : req.user._id}).populate({ path: 'shipping' })
