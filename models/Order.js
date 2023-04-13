@@ -25,12 +25,13 @@ const orderSchema = new mongoose.Schema({
   recipient: { type: String, required: true },
   totalItems: { type: Number, required: true },
   payable: { type: Number, required: true },
-  status: { type: String, default: "pending" },
   shipping: {type: String, required: true},
   billing: {type: String, required: true},
   deliveredAt: {
     type: Date
   },
+  status: { type: String, default: "pending" },
+  isPaid : { type: Boolean }
 },
   { timestamps: true }
 );
