@@ -37,13 +37,13 @@ const sendInvoiceOfOrder = tryCatch(async (req, res) => {
 /// add or place an order
 const addOrder = tryCatch(async (req, res) => {
 
-    const { products, payable, totalItems } = req.body;
+    const { products, payable, totalItems, isPaid, paymentType } = req.body;
 
     // find the user who requested
     const user = await User.findOne({_id : req.user._id}).populate({ path: 'shipping' })
 
 
-    if (!products || products.length <= 0 || !payable || !totalItems ) {
+    if (!products || products.length <= 0 || !payable || !totalItems || !paymentType ) {
         throw new customError("Order details insufficient. Provide all details.", 400);
     }
 
@@ -54,7 +54,9 @@ const addOrder = tryCatch(async (req, res) => {
         products,
         recipient: user.shipping.recipient,
         shipping: user.shipping.shippingAddress,
-        billing: user.shipping.billingAddress
+        billing: user.shipping.billingAddress,
+        isPaid: isPaid ? true : false,
+        paymentType
     };
 
     const order = await new Order(values).save();
