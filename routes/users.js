@@ -24,7 +24,7 @@ const { handleRefreshToken } = require("../middlewares/refreshTokenController");
 const upload = multer({
     limits: {
         fileSize: 2000000 //1mb file size
-    },
+    },  
     fileFilter(req, file, callback) {
 
         if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {

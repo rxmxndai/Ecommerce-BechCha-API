@@ -110,7 +110,8 @@ const sendInvoiceEmail = tryCatch(async (req, res) => {
     
     <body style="font-family: Arial, sans-serif; border: 1px solid black;">
     
-        <h1 style="padding: 10px; color: gray;"> Invoice of your order </h1>
+        <h1 style="padding: 10px; color: gray;"> Thank you for your business with us! </h1>
+        <h3 style="padding: 10px; color: gray;"> The order has been delivered. </h3>
     
         <div style="padding: 30px; background-color: #0171b6; color: white;">
             <h1 style="color: {color};">Invoice</h1>

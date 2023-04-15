@@ -119,14 +119,21 @@ const updateOrder = tryCatch(async (req, res) => {
 
     if (!status) throw new customError("Invalid status!", 400);
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate(["products.product"]);
 
     if (!order) throw new customError("No order found!", 404);
 
     if (status === "delivered") {
         order.status = status;
         await order.save();
+        
+        // send invoice email for successful delivered
+        req.body.order = order
+        console.log(req.body.order);
 
+        await sendInvoiceEmail(req, res);
+
+        // decrement product's stock and incremnet sold items
         const productsArray = order.products;
         for (let update of productsArray) {
             await Product.updateOne(
