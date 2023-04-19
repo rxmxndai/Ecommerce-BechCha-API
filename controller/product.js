@@ -187,6 +187,12 @@ const getAllProducts = tryCatch(async (req, res) => {
         else if (querySort === "desc"){
             options.sort = {price: -1};
         }
+        else if (querySort === "sold"){
+            options.sort = {sold: -1};
+        }
+        else if (querySort === "quantity"){
+            options.sort = {quantity: 1};
+        }
         else {
             options.sort = {createdAt: -1};
         }
