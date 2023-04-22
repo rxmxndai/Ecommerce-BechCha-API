@@ -32,7 +32,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: { type: String, default: "pending" },
   isPaid : { type: Boolean, default: false },
-  paymentType : { type: String, required: true }
+  paymentType : { type: String}
 },
   { timestamps: true }
 );

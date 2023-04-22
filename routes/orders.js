@@ -81,7 +81,5 @@ router.get("/orders/analytics", verifyTokenAndAdmin, getOrdersAnalytics);
 router.get("/users/analytics", verifyTokenAndAdmin, getUserPercentage)
 
 
-// send invoice
-router.post("/invoice", upload.none(), sendInvoiceOfOrder);
 
 module.exports = router

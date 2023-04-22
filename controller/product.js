@@ -1,227 +1,236 @@
 const Product = require("../models/Product");
+const Category = require("../models/Category");
 const { JOIproductSchemaValidate } = require("../middlewares/JoiValidator");
 const tryCatch = require("../utils/tryCatch");
 const customError = require("../utils/customError");
-const { getDataUri } = require("../utils/dataURI")
+const { getDataUri } = require("../utils/dataURI");
 const cloudinary = require("cloudinary").v2;
-
-
 
 // adding new products
 const addProduct = tryCatch(async (req, res) => {
+  const { title, description, category, price, quantity, brand } = req.body;
 
-    const { title, description, category, price, quantity, brand } = req.body;
+  const productValue = {
+    title,
+    description,
+    brand,
+    category,
+    quantity,
+    price,
+    createdBy: req.user._id,
+  };
 
-    const productValue = {
-        title,
-        description,
-        brand,
-        category,
-        quantity,
-        price,
-        createdBy: req.user._id
-    }
-    
-    const { error, value } = await JOIproductSchemaValidate(productValue);
+  const { error, value } = await JOIproductSchemaValidate(productValue);
 
-    if (error) throw new customError(`${error.details[0].message}`, 400)
+  if (error) throw new customError(`${error.details[0].message}`, 400);
 
-    const saveProduct = new Product(value);
+  const saveProduct = new Product(value);
 
+  const files = req?.files;
+  if (files) {
+    let images = await Promise.all(
+      files.map(async (file) => {
+        const fileURI = getDataUri(file);
+        const myCloud = await cloudinary.uploader.upload(fileURI.content, {
+          folder: "Products",
+        });
+        return {
+          public_id: myCloud.public_id,
+          url: myCloud.url,
+        };
+      })
+    );
 
-    const files = req?.files;
-    if (files) {
-        let images = await Promise.all(
-            files.map(async (file) => {
-              const fileURI = getDataUri(file);
-              const myCloud = await cloudinary.uploader.upload(fileURI.content, {
-                folder: "Products"
-              });
-              return {
-                public_id: myCloud.public_id,
-                url: myCloud.url,
-              };
-            })
-          );
+    saveProduct.images = images;
+  }
 
-        saveProduct.images = images;
-    }
+  const product = await saveProduct.save();
 
-    
-    const product = await saveProduct.save();
-
-    return res.status(201).json({
-        product
-    });
-})
-
-
+  return res.status(201).json({
+    product,
+  });
+});
 
 
 // update product
 const updateProduct = tryCatch(async (req, res) => {
-    const prodID = req.params.id
-    if (!prodID) return res.status(400).json({message: "No product selected!"})
+  const prodID = req.params.id;
+  if (!prodID) return res.status(400).json({ message: "No product selected!" });
 
-    const allowedUpdates = ["title", "description", "category", "brand", "specification", "price", "quantity", "review"];
-    const updatesSent = Object.keys(req.body);
+  const allowedUpdates = [
+    "title",
+    "description",
+    "category",
+    "brand",
+    "specification",
+    "price",
+    "quantity",
+    "review",
+  ];
+  const updatesSent = Object.keys(req.body);
+
+  const isValid = updatesSent.every((update) =>
+    allowedUpdates.includes(update)
+  );
+
+  if (!isValid) throw new customError("Some fields cannot be changed!", 400);
+
+  const productP = await Product.findById(prodID);
+
+  updatesSent.forEach((update) => {
+    console.log(update);
+    productP[update] = req.body[update];
+  });
+
+  let product;
+
+  const files = req?.files;
+  if (files.length > 0) {
+    try {
+      productP.images.map(async (image) => {
+        await cloudinary.uploader.destroy(image.public_id);
+      });
 
 
-    const isValid = updatesSent.every(update => allowedUpdates.includes(update))
+      productP.images = await Promise.all(
+        files.map(async (file) => {
+          const fileURI = getDataUri(file);
+          const myCloud = await cloudinary.uploader.upload(fileURI.content, {
+            folder: "Products",
+          });
+          return {
+            public_id: myCloud.public_id,
+            url: myCloud.url,
+          };
+        })
+      );
 
-    if (!isValid) throw new customError("Some fields cannot be changed!", 400);
-
-    const productP = await Product.findById(prodID);
-
-    updatesSent.forEach(update => {
-        console.log(update);
-        productP[update] = req.body[update];
-    })
-
-    let product;
-
-    const files = req?.files;
-    if (files.length > 0) {
-        try {
-            productP.images.map( async (image) => {
-                await cloudinary.uploader.destroy(image.public_id);
-            })
-            
-            productP.images = await Promise.all(
-                files.map(async (file) => {
-                  const fileURI = getDataUri(file);
-                  const myCloud = await cloudinary.uploader.upload(fileURI.content, {
-                    folder: "Products"
-                  });
-                  return {
-                    public_id: myCloud.public_id,
-                    url: myCloud.url,
-                  };
-                })
-              );
-
-            product = await productP.save();
-        }
-        catch (err) {
-            console.log(err);
-        }
-
+      product = await productP.save();
+    } catch (err) {
+      console.log(err);
     }
-    else {
-        product = await productP.save();
-    }
+  } else {
+    product = await productP.save();
+  }
 
-    return res.status(201).json({
-        product
-    });
-})
-
-
-
+  return res.status(201).json({
+    product,
+  });
+});
 
 // delete product
 const deleteProduct = tryCatch(async (req, res, next) => {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id)
+  const deletedProduct = await Product.findByIdAndDelete(req.params.id);
 
-    if (!deletedProduct) throw new customError("No record found", 500)
+  if (!deletedProduct) throw new customError("No record found", 500);
 
-   if (deletedProduct.image) {
-    await Promise.all( deleteProduct.images?.map( async (image) => {
+  if (deletedProduct.image) {
+    await Promise.all(
+      deleteProduct.images?.map(async (image) => {
         await cloudinary.uploader.destroy(image.public_id);
-    }))
-   }
+      })
+    );
+  }
 
-    const product = deletedProduct._doc;
+  const product = deletedProduct._doc;
 
-    return res.status(200).json( product )
-})
-
-
+  return res.status(200).json(product);
+});
 
 // get particular product
 const getOneProduct = tryCatch(async (req, res) => {
-    const product = await Product.findById(req.params.id)
+  const product = await Product.findById(req.params.id).populate(["category"]);
 
-    if (!product) throw new Error("No record found")
+  if (!product) throw new Error("No record found");
 
-    return res.status(200).json(product)
-})
-
-
+  return res.status(200).json(product);
+});
 
 // get all products
 const getAllProducts = tryCatch(async (req, res) => {
+  let products;
+  // query
+  const querySearch = req.query.search;
+  const querySort = req.query.sort;
+  const limitPrice = parseInt(req.query.limitprice);
+  const queryLimit = parseInt(req.query.limit);
+  const subIds = req.query.subIds;
 
-    let products;
-    // query
-    const querySearch = req.query.search
-    const querySort = req.query.sort
-    const limitPrice = parseInt(req.query.limitprice)
-    const queryLimit = parseInt(req.query.limit);
-    const subIds = req.query.subIds;
+  let queries = {};
+  let options = {};
 
-    let queries = { }
-    let options = {}
+  //sort by price limit
+  if (limitPrice) {
+    queries.price = { $lte: limitPrice };
+  }
 
-    //sort by price limit 
-    if (limitPrice) {
-        queries.price = {$lte: limitPrice} ;
+  // categorical retrieve
+  if (subIds) {
+    const childrenCats = subIds.split(",");
+    queries.category = { $in: childrenCats };
+  }
+
+  // pagination
+  if (queryLimit) {
+    options.limit = queryLimit;
+  }
+
+  // sort by price order
+  if (querySort) {
+    if (querySort === "asc") {
+      options.sort = { price: 1 };
+    } else if (querySort === "desc") {
+      options.sort = { price: -1 };
+    } else if (querySort === "sold") {
+      options.sort = { sold: -1 };
+    } else if (querySort === "quantity") {
+      options.sort = { quantity: 1 };
+    } else {
+      options.sort = { createdAt: -1 };
     }
+  }
 
-    // categorical retrieve
-    if (subIds) {
-        const childrenCats = subIds.split(",");
-        queries.category = { $in: childrenCats};
-    }
+  if (querySearch) {
+    queries.$or = [
+      { title: new RegExp(querySearch, "i") },
+      { brand: new RegExp(querySearch, "i") },
+    ];
+  }
 
-    // pagination
-    if (queryLimit) {
-        options.limit = queryLimit;
-    }
+  products = await Product.find(queries, null, options).populate(["category"]);
 
-    // sort by price order
-    if (querySort) {
-        if (querySort === "asc") {
-            options.sort = {price: 1};
-        }
-        else if (querySort === "desc"){
-            options.sort = {price: -1};
-        }
-        else if (querySort === "sold"){
-            options.sort = {sold: -1};
-        }
-        else if (querySort === "quantity"){
-            options.sort = {quantity: 1};
-        }
-        else {
-            options.sort = {createdAt: -1};
-        }
-    }
+  if (!products) throw new customError("No record found", 404);
 
-
-    if (querySearch) {
-        queries.$or = [
-            { title: new RegExp(querySearch, "i") },
-            { brand: new RegExp(querySearch, "i") } 
-          ];
-    }
+  return res.status(200).json(products);
+});
 
 
 
-    products = await Product.find(queries, null, options);
 
-    if (!products) throw new customError("No record found", 404);
+// get categorical distribution of products
 
-    return res.status(200).json(products)
-})
+const getCategoricalDistribution = tryCatch(async (req, res) => {
+  const projection = await Product.aggregate([
+    { $group: { _id: "$category", count: { $sum: 1 } } },
+    { $project: { category: "$_id", productsCount: "$count", _id: 0 } },
+  ]);
 
+  // Map over the results and populate the category field with the corresponding category name
+  const catResult = await Promise.all(
+    projection.map(async (result) => {
+      const category = await Category.findById(result.category);
+      return { category: category.name, productsCount: result.productsCount };
+    })
+  );
 
-
+  return res.status(200).json(catResult);
+});
 
 module.exports = {
-    addProduct,
-    updateProduct,
-    deleteProduct,
-    getOneProduct,
-    getAllProducts
-}
+  addProduct,
+  updateProduct,
+  deleteProduct,
+  getOneProduct,
+  getAllProducts,
+  getCategoricalDistribution,
+};

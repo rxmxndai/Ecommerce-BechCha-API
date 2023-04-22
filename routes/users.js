@@ -11,7 +11,8 @@ const {
     getAllUser, 
     getStatsUser,
     resendOTP,
-    getUsersShippingDetails
+    getUsersShippingDetails,
+    updatePass
 } = require("../controller/user")
 
 const multer = require("multer");
@@ -48,10 +49,11 @@ router.post("/resendOTP", resendOTP);
 // login user
 router.post("/login", loginUser);
 
-
 // logout user
 router.delete("/logout/:id", verifyTokenAndAuthorization, logoutUser);
 
+// update pass
+router.patch("/password", verifyTokenAndAuthorization, upload.none(""), updatePass);
 
 // update user
 router.patch("/:id", verifyTokenAndAuthorization, upload.single("image"), updateUser);

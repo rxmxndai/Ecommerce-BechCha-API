@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { verifyTokenAndAdmin }  = require("../middlewares/auth");
-const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts } = require("../controller/product");
+const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts, getCategoricalDistribution } = require("../controller/product");
 const customError = require("../utils/customError");
 const multer = require("multer");
 
@@ -27,11 +27,17 @@ router.patch( "/:id", verifyTokenAndAdmin, upload.array("images"), updateProduct
 // delete product
 router.delete("/:id", verifyTokenAndAdmin, deleteProduct)
 
+// get categorical distribution data
+router.get("/categorical-distribution", verifyTokenAndAdmin, getCategoricalDistribution)
+
 // get particular product
 router.get("/:id", getOneProduct)
 
 // get all products
 router.get("/", getAllProducts)
+
+
+
 
 
 module.exports = router

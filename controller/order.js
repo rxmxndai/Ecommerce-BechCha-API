@@ -115,7 +115,7 @@ const cancelOrder = tryCatch(async (req, res) => {
 // update order
 const updateOrder = tryCatch(async (req, res) => {
     const orderId = req.params.id;
-    const status = req.body.status;
+    const {status} = req.body;
 
     if (!status) throw new customError("Invalid status!", 400);
 
@@ -125,6 +125,7 @@ const updateOrder = tryCatch(async (req, res) => {
 
     if (status === "delivered") {
         order.status = status;
+        order.paymentType = "Cash-on-delivery"
         await order.save();
         
         // send invoice email for successful delivered

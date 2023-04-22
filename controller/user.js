@@ -1,4 +1,3 @@
-const User = require("../models/User");
 const { decryptHashedPass, sendOTPverificationEmail } = require("../utils/utils");
 const tryCatch = require("../utils/tryCatch");
 const OTPmodel = require("../models/OTPverification");
@@ -7,6 +6,7 @@ const customError = require("../utils/customError");
 const { cookieOptions } = require("../middlewares/refreshTokenController");
 const { getDataUri } = require("../utils/dataURI");
 const Shipping = require("../models/Shipping");
+const User = require("../models/User");
 const cloudinary = require("cloudinary").v2;
 
 
@@ -23,8 +23,6 @@ const registerUser = tryCatch(async (req, res) => {
 
         const myCloud = await cloudinary.uploader.upload(fileURI.content, {
             folder: 'Users',
-            width: 150,
-            crop: 'scale',
         })
 
         user.image = {
@@ -163,13 +161,41 @@ const logoutUser = tryCatch(async (req, res) => {
 })
 
 
+const updatePass = tryCatch(async (req, res) => {
+    let { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+    console.log(oldPassword, newPassword, confirmNewPassword);
+
+    if (confirmNewPassword !== newPassword) throw new customError("Credentials do not match", 400);
+
+    let user = await User.findOne({_id: req.user._id});
+    
+    if (!user) throw new customError("Invalid request. pLease be authorized!");
+
+    const validPass = await decryptHashedPass({
+        password: oldPassword,
+        hashedPassword: user.password
+    });
+
+    if (!validPass) {
+        throw new customError("No user found", 404);
+    }
+
+    user.password = newPassword
+
+    user = await user.save();
+
+    return res.status(200).json({message: "Password updated! Please login again."})
+
+})
+
 
 
 const updateUser = tryCatch(async (req, res) => {
 
     const id = req.params.id;
     const updates = Object.keys(req.body);
-    const allowedUpdates = ["username", "email", "password", "image", "isAdmin", "address", "contacts"]
+    const allowedUpdates = ["username", "email", "image", "isAdmin", "address", "contacts"]
 
     const isValid = updates.every(update => allowedUpdates.includes(update))
     if (!isValid) throw new customError("Cannot change some credentials!", 403);
@@ -188,8 +214,6 @@ const updateUser = tryCatch(async (req, res) => {
             const fileURI = file && getDataUri(file);
             const myCloud = await cloudinary.uploader.upload(fileURI.content, {
                 folder: 'Users',
-                width: 150,
-                crop: 'scale',
             })
             // Destroy the previous image if it exists
             if (oldUser.image && oldUser.image.public_id) {
@@ -304,6 +328,7 @@ module.exports = {
     resendOTP,
     logoutUser,
     updateUser,
+    updatePass,
     deleteUser,
     getOneUser,
     getAllUser,
