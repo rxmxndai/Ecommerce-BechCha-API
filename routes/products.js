@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { verifyTokenAndAdmin }  = require("../middlewares/auth");
-const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts, getCategoricalDistribution } = require("../controller/product");
+const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts, getCategoricalDistribution, updateFeaturedProds, getFeaturedProducts } = require("../controller/product");
 const customError = require("../utils/customError");
 const multer = require("multer");
 
@@ -35,6 +35,13 @@ router.get("/:id", getOneProduct)
 
 // get all products
 router.get("/", getAllProducts)
+
+
+// update featured
+router.patch("/update/featured", verifyTokenAndAdmin, upload.none(""), updateFeaturedProds)
+
+// get featured
+router.get("/find/featured",  getFeaturedProducts)
 
 
 

@@ -51,7 +51,6 @@ const addProduct = tryCatch(async (req, res) => {
   });
 });
 
-
 // update product
 const updateProduct = tryCatch(async (req, res) => {
   const prodID = req.params.id;
@@ -90,7 +89,6 @@ const updateProduct = tryCatch(async (req, res) => {
       productP.images.map(async (image) => {
         await cloudinary.uploader.destroy(image.public_id);
       });
-
 
       productP.images = await Promise.all(
         files.map(async (file) => {
@@ -137,14 +135,23 @@ const deleteProduct = tryCatch(async (req, res, next) => {
   return res.status(200).json(product);
 });
 
+
+
+
 // get particular product
 const getOneProduct = tryCatch(async (req, res) => {
-  const product = await Product.findById(req.params.id).populate(["category"]);
+  const product = await Product.findById(req.params.id).populate(["category", "reviews"]);
 
   if (!product) throw new Error("No record found");
 
   return res.status(200).json(product);
 });
+
+
+
+
+
+
 
 // get all products
 const getAllProducts = tryCatch(async (req, res) => {
@@ -207,6 +214,7 @@ const getAllProducts = tryCatch(async (req, res) => {
 
 
 
+
 // get categorical distribution of products
 
 const getCategoricalDistribution = tryCatch(async (req, res) => {
@@ -226,6 +234,40 @@ const getCategoricalDistribution = tryCatch(async (req, res) => {
   return res.status(200).json(catResult);
 });
 
+
+
+/// update featured
+const updateFeaturedProds = tryCatch(async (req, res) => {
+  const { products } = req.body;
+
+  // remove all featured
+  await Product.updateMany(
+    { isFeatured: true },
+    {
+      $set: {
+        isFeatured: false,
+      },
+    }
+  );
+
+
+  Object.values(products).map(async (prod) => {
+    await Product.findByIdAndUpdate(prod, {
+      $set: {
+        isFeatured: true,
+      },
+    });
+  });
+
+  return res.status(200).json("Done updating featured products!");
+});
+
+/// update featured
+const getFeaturedProducts = tryCatch(async (req, res) => {
+  const products = await Product.find({ isFeatured: true });
+  return res.status(200).json(products);
+});
+
 module.exports = {
   addProduct,
   updateProduct,
@@ -233,4 +275,6 @@ module.exports = {
   getOneProduct,
   getAllProducts,
   getCategoricalDistribution,
+  updateFeaturedProds,
+  getFeaturedProducts,
 };

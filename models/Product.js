@@ -47,7 +47,10 @@ const productSchema = new mongoose.Schema( {
         reviews: [
             { type: mongoose.Schema.Types.ObjectId, ref: "Review" }
         ],
-        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        isFeatured: { type: Boolean, default: false },
+        featuredMessage: { type: String },
+        featuredTitle: { type: String }
     }, 
 
     { timestamps : true }

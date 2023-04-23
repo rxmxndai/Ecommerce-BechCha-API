@@ -9,6 +9,7 @@ const categoryRoute = require("./routes/categories")
 const orderRoute = require("./routes/orders")
 const cartRoute = require("./routes/carts")
 const shippingRoute = require("./routes/shippings")
+const reviewRoute = require("./routes/reviews")
 
 const errorHandler = require("./middlewares/errorHandler")
 const credentials = require("./middlewares/credentials")
@@ -23,9 +24,6 @@ app.use(credentials);
 
 // Cross Origin Resource Sharing
 app.use(cors(corsOptions))
-
-// built-in middleware to handle urlencoded form data
-app.use(express.urlencoded({ extended: false }));
 
 //middleware for cookies
 app.use(cookieParser());
@@ -42,6 +40,7 @@ app.use("/api/products", productRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/cart", cartRoute);
 app.use("/api/shipping", shippingRoute)
+app.use("/api/reviews", reviewRoute)
 app.use(errorHandler);
 
 

@@ -256,7 +256,7 @@ const deleteUser = tryCatch(async (req, res) => {
 
 
 const getOneUser = tryCatch(async (req, res) => {
-    const user = await User.findById(req.params.id).populate("shipping")
+    const user = await User.findById(req.params.id).populate(["shipping"])
 
     if (!user) throw new customError("No USER record found", 404)
 
