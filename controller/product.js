@@ -135,23 +135,17 @@ const deleteProduct = tryCatch(async (req, res, next) => {
   return res.status(200).json(product);
 });
 
-
-
-
 // get particular product
 const getOneProduct = tryCatch(async (req, res) => {
-  const product = await Product.findById(req.params.id).populate(["category", "reviews"]);
+  const product = await Product.findById(req.params.id).populate([
+    { path: "category", select: ["name", "_id"] },
+    { path: "reviews", populate: { path: "user", select: ["username", "image"] } },
+  ]);
 
   if (!product) throw new Error("No record found");
 
   return res.status(200).json(product);
 });
-
-
-
-
-
-
 
 // get all products
 const getAllProducts = tryCatch(async (req, res) => {
@@ -211,10 +205,6 @@ const getAllProducts = tryCatch(async (req, res) => {
   return res.status(200).json(products);
 });
 
-
-
-
-
 // get categorical distribution of products
 
 const getCategoricalDistribution = tryCatch(async (req, res) => {
@@ -234,8 +224,6 @@ const getCategoricalDistribution = tryCatch(async (req, res) => {
   return res.status(200).json(catResult);
 });
 
-
-
 /// update featured
 const updateFeaturedProds = tryCatch(async (req, res) => {
   const { products } = req.body;
@@ -249,7 +237,6 @@ const updateFeaturedProds = tryCatch(async (req, res) => {
       },
     }
   );
-
 
   Object.values(products).map(async (prod) => {
     await Product.findByIdAndUpdate(prod, {
