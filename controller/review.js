@@ -8,7 +8,7 @@ const tryCatch = require("../utils/tryCatch");
 
 
 
-
+// check for user and order validity
 
 const hasBought = tryCatch ( async( product, userId, next )  => {
 
@@ -36,7 +36,7 @@ const hasBought = tryCatch ( async( product, userId, next )  => {
 
 
 
-
+// add a review
 const addReview = tryCatch(async (req, res) => {
   let { product, rating, comment } = req.body;
   let userId = req.user._id;
@@ -112,18 +112,15 @@ const addReview = tryCatch(async (req, res) => {
 
 // delete review
 const deleteReview = tryCatch(async (req, res) => {
-  const productId = req.params.id;
 
-  const review = await Review.findOne({
-    _id: req.user._id,
-    product: productId,
+
+  const review = await Review.findOneAndRemove({
+    _id: req.params.id,
   });
-
-  console.log(review);
 
   if (!review) return res.status(404).json({ message: "Not reviewed yet!" });
 
-  return res.status(200).json({ message: "Done", review });
+  return res.status(200).json({ msg: "Done", review });
 });
 
 

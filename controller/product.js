@@ -135,16 +135,73 @@ const deleteProduct = tryCatch(async (req, res, next) => {
   return res.status(200).json(product);
 });
 
+
+
+
+
+
+
+
+
+
+
+
 // get particular product
 const getOneProduct = tryCatch(async (req, res) => {
   const product = await Product.findById(req.params.id).populate([
     { path: "category", select: ["name", "_id"] },
-    { path: "reviews", populate: { path: "user", select: ["username", "image"] } },
+    {
+      path: "reviews",
+      populate: { path: "user", select: ["username", "image"] },
+    },
   ]);
 
   if (!product) throw new Error("No record found");
 
   return res.status(200).json(product);
+});
+
+
+
+
+
+
+
+// const getProducts by query indexing
+
+const getIndexedProducts = tryCatch(async (req, res) => {
+  const search = req.query.search;
+  const limit = parseInt(req.query.limit);
+
+  const aggregation = [
+    {
+      $search: {
+        index: "products",
+        autocomplete: {
+          query: search,
+          path: "title",
+          fuzzy: {
+            maxEdits: 2,
+          },
+        },
+      },
+    },
+    { $limit: limit },
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        image: { $arrayElemAt: [ '$images', 0 ] },
+        price: 1,
+      },
+    } 
+  ]
+
+  const products = await Product.aggregate(aggregation);
+
+  if (!products) throw new customError("No products found", 404);
+ 
+  return res.status(200).json({ products, msg: "search results" });
 });
 
 // get all products
@@ -199,6 +256,7 @@ const getAllProducts = tryCatch(async (req, res) => {
   }
 
   products = await Product.find(queries, null, options).populate(["category"]);
+
 
   if (!products) throw new customError("No record found", 404);
 
@@ -264,4 +322,5 @@ module.exports = {
   getCategoricalDistribution,
   updateFeaturedProds,
   getFeaturedProducts,
+  getIndexedProducts
 };

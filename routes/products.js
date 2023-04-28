@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { verifyTokenAndAdmin }  = require("../middlewares/auth");
-const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts, getCategoricalDistribution, updateFeaturedProds, getFeaturedProducts } = require("../controller/product");
+const { addProduct, updateProduct, deleteProduct, getOneProduct, getAllProducts, getCategoricalDistribution, updateFeaturedProds, getFeaturedProducts, getIndexedProducts } = require("../controller/product");
 const customError = require("../utils/customError");
 const multer = require("multer");
 
@@ -19,29 +19,33 @@ const upload = multer({
 })
 
 // add products
-router.post("/", verifyTokenAndAdmin, upload.array("images"), addProduct)
+router.post("/", verifyTokenAndAdmin, upload.array("images"), addProduct);
 
 // update prod
-router.patch( "/:id", verifyTokenAndAdmin, upload.array("images"), updateProduct)
+router.patch( "/:id", verifyTokenAndAdmin, upload.array("images"), updateProduct);
 
 // delete product
 router.delete("/:id", verifyTokenAndAdmin, deleteProduct)
 
 // get categorical distribution data
-router.get("/categorical-distribution", verifyTokenAndAdmin, getCategoricalDistribution)
+router.get("/categorical-distribution", verifyTokenAndAdmin, getCategoricalDistribution);
 
 // get particular product
-router.get("/:id", getOneProduct)
+router.get("/:id", getOneProduct);
 
 // get all products
-router.get("/", getAllProducts)
+router.get("/", getAllProducts);
 
 
 // update featured
-router.patch("/update/featured", verifyTokenAndAdmin, upload.none(""), updateFeaturedProds)
+router.patch("/update/featured", verifyTokenAndAdmin, upload.none(""), updateFeaturedProds);
 
 // get featured
-router.get("/find/featured",  getFeaturedProducts)
+router.get("/find/featured",  getFeaturedProducts);
+
+// get indexed search
+
+router.get("/find/indexed-query", getIndexedProducts);
 
 
 
