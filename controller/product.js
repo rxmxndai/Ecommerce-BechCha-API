@@ -255,7 +255,11 @@ const getAllProducts = tryCatch(async (req, res) => {
     ];
   }
 
-  products = await Product.find(queries, null, options).populate(["category"]);
+  products = await Product.find(queries, ["_id", "title", "price", "images", "quantity"], options).populate({
+        path: "category", 
+        select: ["_id", "name"] 
+      },
+  );
 
 
   if (!products) throw new customError("No record found", 404);

@@ -2,7 +2,6 @@ const { addOrder, deleteOrder, getAllOrders, getSalesAnalytics, getOrdersAnalyti
 const router = require("express").Router();
 const { verifyTokenAndAdmin, verifyTokenAndAuthorization } = require("../middlewares/auth");
 const multer = require("multer");
-const { sendInvoiceEmail } = require("../utils/utils");
 const axios = require("axios")
 
 const upload = multer();
@@ -21,10 +20,15 @@ router.patch("/update/:id", verifyTokenAndAdmin, upload.none(), updateOrder)
 router.delete("/:id", verifyTokenAndAdmin, deleteOrder);
 
 // get particular USER'S OREDER from an individual customer
-router.get("/me", verifyTokenAndAuthorization, getUserOrders);
+router.get("/:id", verifyTokenAndAuthorization, getUserOrders);
+
 
 // get particular order 
-router.get("/:id", verifyTokenAndAuthorization, getOneOrderById);
+router.get("/user/:id", verifyTokenAndAuthorization, getOneOrderById);
+
+
+
+
 
 // KHALTI request 
 router.post("/pay-khalti", verifyTokenAndAuthorization,  upload.none(), async (req, res) => {

@@ -175,7 +175,20 @@ const deleteOrder = tryCatch(async (req, res, next) => {
 
 // get One user's orderList
 const getUserOrders = tryCatch(async (req, res) => {
-    const orders = await Order.find({ user: req.user._id }, null, { sort: { createdAt: -1 } }).populate(["user", "products.product"])
+
+    const orderId = req.params.id;
+
+    console.log(orderId);
+
+    const orders = await Order.find({ user: orderId }, null, { sort: { createdAt: -1 } }).populate([{
+        path: "user",
+        select: ["username",  "image"]
+    },
+    {
+        path: "products.product",
+        select: ["title", "_id", "images"]
+    }
+])
     if (!orders) return res.status(200).json([])
 
     return res.status(200).json(orders)
