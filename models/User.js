@@ -2,114 +2,118 @@ const mongoose = require("mongoose");
 const { hashPass } = require("../utils/utils");
 const jwt = require("jsonwebtoken");
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     username: {
-        type: String,
-        required: true,
-        unique: true
+      type: String,
+      required: true,
+      unique: true,
     },
     password: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
+      type: String,
+      required: true,
+      unique: true,
     },
     isAdmin: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
     isVerified: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     shipping: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Shipping",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Shipping",
     },
     image: {
-        public_id: String,
-        url: String,
+      public_id: String,
+      url: String,
     },
     dob: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     address: {
-        type: String,
+      type: String,
     },
     contacts: {
-        type: Number,
+      type: Number,
+      validate: {
+        validator: function (value) {
+          const regex = /^9\d{9}$/;
+          return regex.test(value);
+        },
+        message: "Enter a valid phone number!",
+      },
     },
-    refreshToken: [String]
-},
+    refreshToken: [String],
+  },
 
-    { timestamps: true }
+  { timestamps: true }
 );
 
-
 userSchema.methods.toJSON = function () {
-    const user = this
+  const user = this;
 
-    const userObject = user.toObject()
+  const userObject = user.toObject();
 
-    delete userObject.password
-    delete userObject.refreshToken
-    if (userObject.image && userObject.image.url) {
-        userObject.image = userObject.image.url
-    }
-    else {
-        userObject.image = "";
-    }
-    return userObject
-}
-
-
+  delete userObject.password;
+  delete userObject.refreshToken;
+  if (userObject.image && userObject.image.url) {
+    userObject.image = userObject.image.url;
+  } else {
+    userObject.image = "";
+  }
+  return userObject;
+};
 
 userSchema.methods.generateAuthToken = async function () {
-    const user = this
+  const user = this;
 
-    if (!user) throw new Error("No user")
+  if (!user) throw new Error("No user");
 
-    const payload = {
-        _id: user._id.toString(),
-        isAdmin: user.isAdmin,
-    }
+  const payload = {
+    _id: user._id.toString(),
+    isAdmin: user.isAdmin,
+  };
 
-    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
+  const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+    expiresIn: "1d",
+  });
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+    expiresIn: "1d",
+  });
 
-    if (user.refreshToken.length >= 5) {
-        user.refreshToken.shift();
-        user.refreshToken = [...user.refreshToken, refreshToken]
-    } else {
-        user.refreshToken = [...user.refreshToken, refreshToken]
-    }
+  if (user.refreshToken.length >= 5) {
+    user.refreshToken.shift();
+    user.refreshToken = [...user.refreshToken, refreshToken];
+  } else {
+    user.refreshToken = [...user.refreshToken, refreshToken];
+  }
 
-    await user.save()
+  await user.save();
 
-    const tokens = {
-        refreshToken,
-        accessToken
-    }
+  const tokens = {
+    refreshToken,
+    accessToken,
+  };
 
-    return tokens
-}
-
-
+  return tokens;
+};
 
 userSchema.pre("save", async function (next) {
-    const user = this
-    if (user.isModified("password")) {
-        user.password = await hashPass(user.password)
-    }
-    next()
-})
+  const user = this;
+  if (user.isModified("password")) {
+    user.password = await hashPass(user.password);
+  }
+  next();
+});
 
+const User = mongoose.model("User", userSchema);
 
-
-const User = mongoose.model('User', userSchema);
-
-module.exports = User
+module.exports = User;
