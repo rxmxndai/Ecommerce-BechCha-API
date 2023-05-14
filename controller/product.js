@@ -135,17 +135,6 @@ const deleteProduct = tryCatch(async (req, res, next) => {
   return res.status(200).json(product);
 });
 
-
-
-
-
-
-
-
-
-
-
-
 // get particular product
 const getOneProduct = tryCatch(async (req, res) => {
   const product = await Product.findById(req.params.id).populate([
@@ -161,48 +150,62 @@ const getOneProduct = tryCatch(async (req, res) => {
   return res.status(200).json(product);
 });
 
-
-
-
-
-
-
 // const getProducts by query indexing
 
 const getIndexedProducts = tryCatch(async (req, res) => {
   const search = req.query.search;
-  const limit = parseInt(req.query.limit);
+  const limit = parseInt(req.query.limit) === 0 ? 100000 :  parseInt(req.query.limit) ;
+  const sort = req.query.sort === "desc" ? -1 : 1;
 
-  const aggregation = [
-    {
-      $search: {
-        index: "products",
-        autocomplete: {
-          query: search,
-          path: "title",
-          fuzzy: {
-            maxEdits: 2,
-          },
+  // console.log(search, limit, sort);
+
+  const matchStage = {
+    $match: {
+      price: { $lte: limit },
+    },
+  };
+
+  const searchStage = {
+    $search: {
+      index: "products",
+      autocomplete: {
+        query: search,
+        path: "title",
+        fuzzy: {
+          maxEdits: 2,
         },
       },
     },
-    { $limit: limit },
-    {
-      $project: {
-        _id: 1,
-        title: 1,
-        image: { $arrayElemAt: [ '$images', 0 ] },
-        price: 1,
-      },
-    } 
-  ]
+  };
 
+  const sortStage = {
+    $sort: {
+      price: sort,
+    },
+  };
+
+  const projectStage = {
+    $project: {
+      _id: 1,
+      title: 1,
+      image: { $arrayElemAt: ["$images", 0] },
+      price: 1,
+    },
+  };
+
+  const aggregation = [searchStage, matchStage, sortStage, projectStage];
+
+  
   const products = await Product.aggregate(aggregation);
+  // console.log(products);
 
   if (!products) throw new customError("No products found", 404);
- 
+
   return res.status(200).json({ products, msg: "search results" });
 });
+
+
+
 
 // get all products
 const getAllProducts = tryCatch(async (req, res) => {
@@ -255,12 +258,14 @@ const getAllProducts = tryCatch(async (req, res) => {
     ];
   }
 
-  products = await Product.find(queries, ["_id", "title", "price", "images", "quantity"], options).populate({
-        path: "category", 
-        select: ["_id", "name"] 
-      },
-  );
-
+  products = await Product.find(
+    queries,
+    ["_id", "title", "price", "images", "quantity"],
+    options
+  ).populate({
+    path: "category",
+    select: ["_id", "name"],
+  });
 
   if (!products) throw new customError("No record found", 404);
 
@@ -326,5 +331,5 @@ module.exports = {
   getCategoricalDistribution,
   updateFeaturedProds,
   getFeaturedProducts,
-  getIndexedProducts
+  getIndexedProducts,
 };
