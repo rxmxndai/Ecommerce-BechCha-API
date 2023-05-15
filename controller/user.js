@@ -16,6 +16,7 @@ const registerUser = tryCatch(async (req, res) => {
     const fileURI = file && getDataUri(file);
 
     const { error, value } = await JOIuserSchemaValidate(req.body);
+
     if (error) throw new customError(`${error.details[0].message}`, 400);
 
     const user = new User(value);
@@ -34,7 +35,9 @@ const registerUser = tryCatch(async (req, res) => {
     await user.save();
 
     await sendOTPverificationEmail({ userId: user._id, email: user.email }, res, (message, err) => {
+
         if (err) return res.status(400).json({ message: err })
+        
         else {
             return res.status(201).json({ user, message });
         }

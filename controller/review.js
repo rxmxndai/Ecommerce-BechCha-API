@@ -12,7 +12,6 @@ const tryCatch = require("../utils/tryCatch");
 
 const hasBought = tryCatch ( async( product, userId, next )  => {
 
-
   // Find all orders for the user
   const userOrders = await Order.find({ user: userId});
 
@@ -47,12 +46,9 @@ const addReview = tryCatch(async (req, res) => {
 
 
   await hasBought(product, userId, async (error, payload) => {
-    if (error) {
+    if (error || payload !== undefined) {
       return res.status(400).json({msg: "Need to buy to review this product!"})
     }
-
-
-
     else 
     {
       const prod = await Product.findOne({ _id: product }).populate(["reviews"]);

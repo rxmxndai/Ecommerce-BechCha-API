@@ -15,7 +15,7 @@ const signUpSchema = Joi.object({
                 .required(),
         password: Joi.string()
                 .min(4)
-                .max(10)
+                .max(15)
                 .required(),
         confirmPassword: Joi.ref('password'),
         email: Joi.string()

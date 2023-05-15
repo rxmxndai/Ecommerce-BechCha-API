@@ -25,13 +25,6 @@ const productSchema = new mongoose.Schema( {
             required: true,
             ref: "Category"
         }, 
-        specification: {
-            type: Map,
-            of: [{
-                type: String,
-            }],
-            keys: String
-        }, 
         quantity: {
             type: Number,
             required: true
