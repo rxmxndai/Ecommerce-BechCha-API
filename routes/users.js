@@ -3,7 +3,6 @@ const { verifyTokenAndAuthorization, verifyTokenAndAdmin } = require("../middlew
 const {
     registerUser,
     loginUser,
-    verifyOTP,
     logoutUser,
     updateUser,
     deleteUser,
@@ -12,7 +11,9 @@ const {
     getStatsUser,
     resendOTP,
     getUsersShippingDetails,
-    updatePass
+    updatePass,
+    resetPass,
+    verifyOTPCode
 } = require("../controller/user")
 
 const multer = require("multer");
@@ -41,7 +42,7 @@ router.post("/register", upload.single("image"), registerUser);
 
 
 // verify OTP
-router.post("/verifyOTP", verifyOTP);
+router.post("/verifyOTP", verifyOTPCode);
 
 // resend OTP
 router.post("/resendOTP", resendOTP);
@@ -80,6 +81,9 @@ router.get("/shipping/:id", verifyTokenAndAuthorization, getUsersShippingDetails
 
 // refresh token
 router.get("/refresh", handleRefreshToken);
+
+// reset password
+router.post("/reset/password", resetPass);
 
 
 
