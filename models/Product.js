@@ -40,6 +40,15 @@ const productSchema = new mongoose.Schema( {
         reviews: [
             { type: mongoose.Schema.Types.ObjectId, ref: "Review" }
         ],
+        averageRating: {
+            type: Number,
+            validate:  {
+                validator: function(value) {
+                    return value >= 1 && value <= 5;
+                },
+                message: "Rating should be between 1 and 5"
+            },
+        },
         createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         isFeatured: { type: Boolean, default: false },
         featuredMessage: { type: String },

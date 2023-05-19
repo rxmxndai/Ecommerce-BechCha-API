@@ -297,8 +297,6 @@ const getAllUser = tryCatch(async (req, res) => {
   // query
   const query = req.query.new;
 
-  // sort ({parameter: asc or desc})
-  // limit => pagination (limit(how many))
   const getFields = {
     _id: 1,
     username: 1,
@@ -310,7 +308,7 @@ const getAllUser = tryCatch(async (req, res) => {
 
   const users = query
     ? await User.find({}, getFields).sort({ createdAt: -1 }).limit(5)
-    : await User.find({}, getFields).sort({ createdAt: 1 });
+    : await User.find({}, getFields).sort({ createdAt: -1 });
 
   if (!users) throw new customError("No USER record found", 404);
 

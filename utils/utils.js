@@ -89,11 +89,10 @@ const sendInvoiceEmail = tryCatch(async (req, res) => {
 
   const {order} = req.body;
 
-
+  console.log(req.user.email);
   const date = new Date(order.createdAt);
   // Extract the date part
   const formattedDate = date.toISOString().split("T")[0];
-  console.log(formattedDate);
 
 
   // mail options

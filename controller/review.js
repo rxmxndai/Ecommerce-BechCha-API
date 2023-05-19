@@ -6,6 +6,19 @@ const customError = require("../utils/customError");
 const tryCatch = require("../utils/tryCatch");
 
 
+// update product averageRating 
+const updateProductRatings = tryCatch( async ( productId ) => {
+  const product = await Product.findOne({_id: productId}).populate(["reviews"])
+
+  const reviewCount = product.reviews.length;
+  const avgRating = product?.reviews?.reduce((sum, review) => sum + review.rating, 0) / reviewCount;
+  product.averageRating = avgRating;
+  await product.save();
+
+  return true;
+})
+
+
 
 
 // check for user and order validity
@@ -46,7 +59,7 @@ const addReview = tryCatch(async (req, res) => {
 
 
   await hasBought(product, userId, async (error, payload) => {
-    if (error || payload !== undefined) {
+    if (error || payload === undefined) {
       return res.status(400).json({msg: "Need to buy to review this product!"})
     }
     else 
@@ -70,6 +83,8 @@ const addReview = tryCatch(async (req, res) => {
         review.comment = comment;
     
         await review.save();
+        const respp = updateProductRatings(product);
+        if (!respp) throw new customError("Average rating could not be updated!", 500);
         return res.status(200).json({ msg: "Review updated!", review });
       }
       
@@ -82,16 +97,22 @@ const addReview = tryCatch(async (req, res) => {
     
       await review.save();
     
+
+
       // Add the review to the product's reviews array
-      const updatedProduct = await Product.findByIdAndUpdate(
+      const newProduct = await Product.findByIdAndUpdate(
         product,
         { $push: { reviews: review } },
         { new: true }
       ).populate("reviews");
+
+
+      const respp = updateProductRatings(product);
+      if (!respp) throw new customError("Average rating could not be updated!", 500);
     
       return res.status(201).json({
         message: "Review added successfully!",
-        product: updatedProduct.toObject(),
+        product: newProduct.toObject(),
       });
     }
 

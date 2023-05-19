@@ -156,8 +156,6 @@ const getIndexedProducts = tryCatch(async (req, res) => {
   const limit = parseInt(req.query.limit) === 0 ? 100000 :  parseInt(req.query.limit) ;
   const sort = req.query.sort === "desc" ? -1 : 1;
 
-  // console.log(search, limit, sort);
-
   const matchStage = {
     $match: {
       price: { $lte: limit },
@@ -189,14 +187,14 @@ const getIndexedProducts = tryCatch(async (req, res) => {
       title: 1,
       image: { $arrayElemAt: ["$images", 0] },
       price: 1,
+      averageRating: { $ifNull: ["$averageRating", 0] },
     },
   };
 
   const aggregation = [searchStage, matchStage, sortStage, projectStage];
 
-  
+  // console.log(aggregation);
   const products = await Product.aggregate(aggregation);
-  // console.log(products);
 
   if (!products) throw new customError("No products found", 404);
 
@@ -210,7 +208,6 @@ const getIndexedProducts = tryCatch(async (req, res) => {
 const getAllProducts = tryCatch(async (req, res) => {
   let products;
   // query
-  const querySearch = req.query.search;
   const querySort = req.query.sort;
   const limitPrice = parseInt(req.query.limitprice);
   const queryLimit = parseInt(req.query.limit);
@@ -248,13 +245,6 @@ const getAllProducts = tryCatch(async (req, res) => {
     } else {
       options.sort = { createdAt: -1 };
     }
-  }
-
-  if (querySearch) {
-    queries.$or = [
-      { title: new RegExp(querySearch, "i") },
-      { brand: new RegExp(querySearch, "i") },
-    ];
   }
 
   products = await Product.find(
