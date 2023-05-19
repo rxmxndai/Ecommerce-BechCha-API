@@ -74,7 +74,6 @@ const sendOTPverificationEmail = tryCatch(async ({ userId, email }, res, next) =
   const result = await transporter.sendMail(mailOptions);
 
   // console.log(result);
-
   if (!result) return next(undefined, "Email not sent");
 
   return next(`OTP sent at email: ${email}`)

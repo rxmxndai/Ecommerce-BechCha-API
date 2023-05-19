@@ -125,12 +125,12 @@ const updateOrder = tryCatch(async (req, res) => {
 
     if (status === "delivered") {
         order.status = status;
+        order.isPaid = true;
         order.paymentType = "Cash-on-delivery"
         await order.save();
         
         // send invoice email for successful delivered
         req.body.order = order
-        console.log(req.body.order);
 
         await sendInvoiceEmail(req, res);
 

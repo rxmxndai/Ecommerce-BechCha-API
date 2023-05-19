@@ -77,7 +77,6 @@ const updateProduct = tryCatch(async (req, res) => {
   const productP = await Product.findById(prodID);
 
   updatesSent.forEach((update) => {
-    console.log(update);
     productP[update] = req.body[update];
   });
 

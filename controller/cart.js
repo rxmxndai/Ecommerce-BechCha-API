@@ -152,7 +152,7 @@ const deleteProductFromCart = tryCatch( async(req, res) => {
         }
     }
 
-    const cartItem = await Cart.findOneAndUpdate(condition, action, {new: true});
+    await Cart.findOneAndUpdate(condition, action, {new: true});
     
     return res.status(202).json();
 })

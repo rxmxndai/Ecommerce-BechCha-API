@@ -46,34 +46,34 @@ const verifyOTP = tryCatch(async (req, res, next) => {
   return next(undefined, "User email has been verified");
 });
 
-
-
 const resetPass = tryCatch(async (req, res) => {
+  await verifyOTP(req, res, async (error, payload) => {
+    if (error != undefined) {
+      return res.status(500).json(error);
+    } else {
+      console.log("aayo", payload);
+      const user = await User.findOne({ email: req.body.email });
+      user.password = req.body.password;
+      await user.save();
 
-    await verifyOTP(req, res, async (error, payload) => { 
-        if (error != undefined) {
-            return res.status(500).json(error)
-        }
-        else {
-            console.log("aayo", payload);
-            const user = await User.findOne({email: req.body.email})
-            user.password = req.body.password;
-            await user.save();
-
-            return res.status(200).json({message: payload+" You can Proceed to login!"})
-        }
-    })
+      return res
+        .status(200)
+        .json({ message: payload + " You can Proceed to login!" });
+    }
+  });
 });
-
 
 const verifyOTPCode = tryCatch(async (req, res) => {
-
-    await verifyOTP(req, res, (error, payload) => {
-        console.log(error, payload);
-    })
+  await verifyOTP(req, res, async (error, payload) => {
+    if (error != undefined) {
+      return res.status(500).json(error);
+    } else {
+      return res
+        .status(200)
+        .json({ message: payload + " You can Proceed to login!" });
+    }
+  });
 });
-
-
 
 const registerUser = tryCatch(async (req, res) => {
   const file = req?.file;
