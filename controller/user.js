@@ -194,7 +194,7 @@ const logoutUser = tryCatch(async (req, res) => {
 const updatePass = tryCatch(async (req, res) => {
   let { oldPassword, newPassword, confirmNewPassword } = req.body;
 
-  console.log(oldPassword, newPassword, confirmNewPassword);
+  // console.log(oldPassword, newPassword, confirmNewPassword);
 
   if (confirmNewPassword !== newPassword)
     throw new customError("Credentials do not match", 400);

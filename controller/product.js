@@ -249,7 +249,7 @@ const getAllProducts = tryCatch(async (req, res) => {
 
   products = await Product.find(
     queries,
-    ["_id", "title", "price", "images", "quantity"],
+    ["_id", "title", "price", "images", "quantity", "averageRating"],
     options
   ).populate({
     path: "category",
