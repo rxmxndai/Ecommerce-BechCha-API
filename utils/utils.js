@@ -89,7 +89,6 @@ const sendInvoiceEmail = tryCatch(async (req, res) => {
 
   const {order} = req.body;
 
-  console.log(req.user.email);
   const date = new Date(order.createdAt);
   // Extract the date part
   const formattedDate = date.toISOString().split("T")[0];
@@ -223,7 +222,7 @@ const sendOrderSuccessfulEmail = tryCatch(async (req, res, next) => {
 
   const order = req.order
   // const email = req.user.email;
-  const email = "eivorx123@gmail.com";
+  const email ="eivorx123@gmail.com"
 
   // mail options
   const mailOptions = {
@@ -323,7 +322,7 @@ const sendOrderSuccessfulEmail = tryCatch(async (req, res, next) => {
 
 const sendOrderCancellation = tryCatch(async (req, res, next) => {
   const order = req.order
-  const email = "eivorx123@gmail.com";
+  const email = "eivorx123@gmail.com"
 
   // mail options
   const mailOptions = {

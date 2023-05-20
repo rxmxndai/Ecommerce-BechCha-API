@@ -55,7 +55,7 @@ const addOrder = tryCatch(async (req, res) => {
         recipient: user.shipping.recipient,
         shipping: user.shipping.shippingAddress,
         billing: user.shipping.billingAddress,
-        isPaid: isPaid ? true : false,
+        isPaid: isPaid === true ? true : false,
         paymentType
     };
 
@@ -119,7 +119,7 @@ const updateOrder = tryCatch(async (req, res) => {
 
     if (!status) throw new customError("Invalid status!", 400);
 
-    const order = await Order.findById(orderId).populate(["products.product"]);
+    const order = await Order.findById(orderId).populate(["products.product", "user"]);
 
     if (!order) throw new customError("No order found!", 404);
 
