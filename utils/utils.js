@@ -179,7 +179,7 @@ const sendInvoiceEmail = tryCatch(async (req, res) => {
             </div>
             <div style="display: flex; justify-content: flex-end; padding: 5px 0px; font-size: 16px; color: #0171b6;">
                 <h3 style="width: 20%">Total</h3>
-                <h3 style=""> NPR ${order.payable}</h3>
+                <h3 style=""> NPR ${order.payable + Number(200)}</h3>
             </div>
             <hr style="border: none; height: 1px; margin: 10px; background-color: #0171b6;" />
             <div style="margin-top: 20px;">
@@ -290,7 +290,7 @@ const sendOrderSuccessfulEmail = tryCatch(async (req, res, next) => {
 
                 <tr>
                     <th>Total Amount:</th>
-                    <td> NPR ${order.payable}</td>
+                    <td> NPR ${order.payable + Number(200)}</td>
                 </tr>
             </table>
             <p>Your order will be delivered within 3 days from the date of checkout. </p>
