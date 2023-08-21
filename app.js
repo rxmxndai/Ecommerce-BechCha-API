@@ -15,7 +15,7 @@ const errorHandler = require("./middlewares/errorHandler")
 const credentials = require("./middlewares/credentials")
 var cookieParser = require('cookie-parser')
 var cors = require('cors');
-const corsOptions = require("./config/corsOptions");
+// const corsOptions = require("./config/corsOptions");
 
 const app = express();
 
@@ -23,7 +23,9 @@ const app = express();
 app.use(credentials);
 
 // Cross Origin Resource Sharing
-app.use(cors(corsOptions))
+// app.use(cors(corsOptions))
+// give access to all domains for our api
+app.use(cors())
 
 //middleware for cookies
 app.use(cookieParser());
@@ -31,6 +33,12 @@ app.use(cookieParser());
 // built-in middleware for json 
 app.use(express.json());
 
+
+// middleware to get access from all domains
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*")
+  next();
+})
 
 
 // use routers

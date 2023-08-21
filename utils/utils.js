@@ -97,7 +97,7 @@ const sendInvoiceEmail = tryCatch(async (req, res) => {
   // mail options
   const mailOptions = {
     from: process.env.MAIL_EMAIL,
-    to: "eivorx123@gmail.com",
+    to: order.email,
     subject: "Invoice",
     html: `
     <!DOCTYPE html>
@@ -221,8 +221,9 @@ const sendInvoiceEmail = tryCatch(async (req, res) => {
 const sendOrderSuccessfulEmail = tryCatch(async (req, res, next) => {
 
   const order = req.order
+
   // const email = req.user.email;
-  const email ="eivorx123@gmail.com"
+  const email = order.email
 
   // mail options
   const mailOptions = {
@@ -322,7 +323,7 @@ const sendOrderSuccessfulEmail = tryCatch(async (req, res, next) => {
 
 const sendOrderCancellation = tryCatch(async (req, res, next) => {
   const order = req.order
-  const email = "eivorx123@gmail.com"
+  const email = order.email
 
   // mail options
   const mailOptions = {

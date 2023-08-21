@@ -27,9 +27,6 @@ router.patch( "/:id", verifyTokenAndAdmin, upload.array("images"), updateProduct
 // delete product
 router.delete("/:id", verifyTokenAndAdmin, deleteProduct)
 
-// get categorical distribution data
-router.get("/categorical-distribution", verifyTokenAndAdmin, getCategoricalDistribution);
-
 // get particular product
 router.get("/:id", getOneProduct);
 

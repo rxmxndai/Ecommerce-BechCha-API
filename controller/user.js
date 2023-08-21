@@ -221,6 +221,9 @@ const updatePass = tryCatch(async (req, res) => {
     .json({ message: "Password updated! Please login again." });
 });
 
+
+
+
 const updateUser = tryCatch(async (req, res) => {
   const id = req.params.id;
   const updates = Object.keys(req.body);
@@ -270,7 +273,7 @@ const updateUser = tryCatch(async (req, res) => {
     user = await oldUser.save();
   }
 
-  return res.status(201).json(user);
+  return res.status(200).json(user);
 });
 
 const deleteUser = tryCatch(async (req, res) => {

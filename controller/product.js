@@ -261,24 +261,7 @@ const getAllProducts = tryCatch(async (req, res) => {
   return res.status(200).json(products);
 });
 
-// get categorical distribution of products
 
-const getCategoricalDistribution = tryCatch(async (req, res) => {
-  const projection = await Product.aggregate([
-    { $group: { _id: "$category", count: { $sum: 1 } } },
-    { $project: { category: "$_id", productsCount: "$count", _id: 0 } },
-  ]);
-
-  // Map over the results and populate the category field with the corresponding category name
-  const catResult = await Promise.all(
-    projection.map(async (result) => {
-      const category = await Category.findById(result.category);
-      return { category: category.name, productsCount: result.productsCount };
-    })
-  );
-
-  return res.status(200).json(catResult);
-});
 
 /// update featured
 const updateFeaturedProds = tryCatch(async (req, res) => {
@@ -317,7 +300,6 @@ module.exports = {
   deleteProduct,
   getOneProduct,
   getAllProducts,
-  getCategoricalDistribution,
   updateFeaturedProds,
   getFeaturedProducts,
   getIndexedProducts,

@@ -8,10 +8,10 @@ const addDetails = tryCatch(async (req, res) => {
 
     const { billingAddress, shippingAddress, recipient, contacts } = req.body;
 
-    if (!billingAddress || !shippingAddress) throw new customError("Address is not definde!", 400);
+    if (!billingAddress || !shippingAddress) throw new customError("Address is not defined!", 400);
 
 
-    if (!recipient || !contacts) throw new customError("UserInfo is not definde!", 400);
+    if (!recipient || !contacts ) throw new customError("UserInfo is not defined!", 400);
 
     const exists = await Shipping.findOne({user: req.user._id})
 
@@ -24,7 +24,7 @@ const addDetails = tryCatch(async (req, res) => {
         billingAddress,
         shippingAddress,
         recipient,
-        contacts
+        contacts,
     }
 
     const shippingDetails = new Shipping(ShippingData)
@@ -48,7 +48,7 @@ const updateDetails= tryCatch(async (req, res) => {
     if (!ship) throw new customError("User do not have address set!", 404)
 
     const updates = Object.keys(req.body)
-    const validUpdates = ["shippingAddress", "billingAddress", "recipient", "contacts"];
+    const validUpdates = ["shippingAddress", "billingAddress", "recipient", "contacts", "email"];
 
     const isValid = updates.every(update => validUpdates.includes(update))
 

@@ -22,6 +22,9 @@ const orderSchema = new mongoose.Schema({
       required: true
     }
   }],
+  email: {
+    type: String,
+  },
   recipient: { type: String, required: true },
   totalItems: { type: Number, required: true },
   payable: { type: Number, required: true },

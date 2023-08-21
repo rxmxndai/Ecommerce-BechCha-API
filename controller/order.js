@@ -50,6 +50,7 @@ const addOrder = tryCatch(async (req, res) => {
     const values = {
         user: req.user._id,
         payable,
+        email: user.email,
         totalItems,
         products,
         recipient: user.shipping.recipient,
@@ -167,6 +168,8 @@ const deleteOrder = tryCatch(async (req, res, next) => {
 
     const { ...products } = deletedOrder._doc;
 
+    console.log("Deleted!");
+
     return res.status(200).json({ ...products, msg: "Order deleted" })
 
 })
@@ -177,8 +180,6 @@ const deleteOrder = tryCatch(async (req, res, next) => {
 const getUserOrders = tryCatch(async (req, res) => {
 
     const orderId = req.params.id;
-
-    console.log(orderId);
 
     const orders = await Order.find({ user: orderId }, null, { sort: { createdAt: -1 } }).populate([{
         path: "user",
